@@ -1,0 +1,4970 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Regular Expression to DFA Converter | Theory of Computation</title>
+  <style>
+:root {
+  --bg-primary: #0f172a;
+  --bg-secondary: #1e293b;
+  --bg-tertiary: #334155;
+  --bg-card: rgba(30, 41, 59, 0.9);
+  --border-color: #475569;
+  --text-main: #f8fafc;
+  --text-muted: #94a3b8;
+  --primary-color: #3b82f6;
+  --primary-hover: #2563eb;
+  --accent-color: #10b981;
+  --accent-hover: #059669;
+  --danger-color: #ef4444;
+  --warning-color: #f59e0b;
+  --state-bg: #1e293b;
+  --state-border: #94a3b8;
+  --state-active-bg: #1e3a8a;
+  --edge-color: #64748b;
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+}
+
+[data-theme="light"] {
+  --bg-primary: #f8fafc;
+  --bg-secondary: #ffffff;
+  --bg-tertiary: #f1f5f9;
+  --bg-card: rgba(255, 255, 255, 0.95);
+  --border-color: #cbd5e1;
+  --text-main: #0f172a;
+  --text-muted: #64748b;
+  --primary-color: #2563eb;
+  --primary-hover: #1d4ed8;
+  --accent-color: #059669;
+  --accent-hover: #047857;
+  --danger-color: #dc2626;
+  --warning-color: #d97706;
+  --state-bg: #ffffff;
+  --state-border: #475569;
+  --state-active-bg: #dbeafe;
+  --edge-color: #64748b;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  background-color: var(--bg-primary);
+  color: var(--text-main);
+  line-height: 1.5;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Header */
+header {
+  background-color: var(--bg-secondary);
+  border-bottom: 1px solid var(--border-color);
+  padding: 0.85rem 1.75rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  backdrop-filter: blur(8px);
+}
+
+.logo-area {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.logo-icon {
+  background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+  color: white;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+  font-weight: bold;
+  box-shadow: var(--shadow-md);
+}
+
+.title-group h1 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.title-group p {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+.header-actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+/* Main Layout */
+.app-container {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+  height: calc(100vh - 66px);
+}
+
+/* Sidebar Controls */
+.sidebar {
+  width: 410px;
+  background-color: var(--bg-secondary);
+  border-right: 1px solid var(--border-color);
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  padding: 1.25rem;
+  gap: 1.25rem;
+}
+
+/* Main Viewport */
+.main-viewport {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--bg-primary);
+  overflow: hidden;
+}
+
+/* Cards & Sections */
+.control-card {
+  background-color: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.card-title {
+  font-size: 0.82rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* Form Controls */
+.input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+label {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--text-main);
+}
+
+input[type="text"], select {
+  width: 100%;
+  padding: 0.65rem 0.85rem;
+  background-color: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  color: var(--text-main);
+  font-family: var(--font-mono);
+  font-size: 0.95rem;
+  outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+input[type="text"]:focus, select:focus {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25);
+}
+
+.operator-bar {
+  display: flex;
+  gap: 5px;
+  flex-wrap: wrap;
+}
+
+.op-btn {
+  background-color: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  color: var(--text-main);
+  padding: 4px 10px;
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  font-weight: 600;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.op-btn:hover {
+  background-color: var(--primary-color);
+  color: white;
+  border-color: var(--primary-color);
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 0.65rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  border-radius: var(--radius-sm);
+  border: none;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  user-select: none;
+}
+
+.btn-primary {
+  background-color: var(--primary-color);
+  color: white;
+}
+
+.btn-primary:hover {
+  background-color: var(--primary-hover);
+}
+
+.btn-accent {
+  background-color: var(--accent-color);
+  color: white;
+}
+
+.btn-accent:hover {
+  background-color: var(--accent-hover);
+}
+
+.btn-secondary {
+  background-color: var(--bg-tertiary);
+  color: var(--text-main);
+  border: 1px solid var(--border-color);
+}
+
+.btn-secondary:hover {
+  background-color: var(--border-color);
+}
+
+.btn-sm {
+  padding: 4px 10px;
+  font-size: 0.8rem;
+}
+
+/* Tabs */
+.tabs-header {
+  background-color: var(--bg-secondary);
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  overflow-x: auto;
+  padding: 0 1.25rem;
+  gap: 4px;
+}
+
+.tab-btn {
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--text-muted);
+  padding: 0.8rem 1rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.15s ease;
+}
+
+.tab-btn:hover {
+  color: var(--text-main);
+}
+
+.tab-btn.active {
+  color: var(--primary-color);
+  border-bottom-color: var(--primary-color);
+}
+
+.tab-badge {
+  font-size: 0.7rem;
+  padding: 2px 6px;
+  border-radius: 12px;
+  background-color: var(--bg-tertiary);
+  color: var(--text-muted);
+}
+
+.tab-btn.active .tab-badge {
+  background-color: rgba(59, 130, 246, 0.2);
+  color: var(--primary-color);
+}
+
+/* View Mode Selector (Split / Diagram / Table) */
+.view-mode-bar {
+  display: flex;
+  gap: 4px;
+  background-color: var(--bg-secondary);
+  padding: 4px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-color);
+}
+
+.view-btn {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  padding: 4px 10px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.view-btn.active {
+  background-color: var(--primary-color);
+  color: white;
+}
+
+/* Tab Content Areas */
+.tab-content {
+  display: none;
+  flex: 1;
+  overflow: hidden;
+  position: relative;
+}
+
+.tab-content.active {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Graph Canvas Split */
+.graph-container {
+  flex: 1;
+  position: relative;
+  background: radial-gradient(circle at center, rgba(30, 41, 59, 0.4) 0%, transparent 70%);
+  overflow: hidden;
+  transition: flex 0.2s ease;
+}
+
+.graph-controls-overlay {
+  position: absolute;
+  bottom: 16px;
+  right: 16px;
+  display: flex;
+  gap: 6px;
+  background-color: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 5px;
+  box-shadow: var(--shadow-md);
+  z-index: 10;
+}
+
+.graph-info-overlay {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  background-color: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 8px 12px;
+  box-shadow: var(--shadow-md);
+  font-size: 0.82rem;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  pointer-events: none;
+  z-index: 10;
+}
+
+/* Detail Bottom Panel */
+.bottom-panel {
+  height: 250px;
+  background-color: var(--bg-secondary);
+  border-top: 1px solid var(--border-color);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  transition: height 0.2s ease;
+}
+
+.bottom-panel-header {
+  padding: 0.5rem 1.25rem;
+  background-color: var(--bg-tertiary);
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.bottom-panel-body {
+  flex: 1;
+  overflow: auto;
+  padding: 0.75rem 1rem;
+}
+
+/* Modes: Diagram-Only or Table-Only */
+.mode-diagram-only .graph-container {
+  flex: 1;
+}
+.mode-diagram-only .bottom-panel {
+  display: none;
+}
+
+.mode-table-only .graph-container {
+  display: none;
+}
+.mode-table-only .bottom-panel {
+  height: 100%;
+}
+
+/* Scrollable Detail View */
+.scrollable-page {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1.5rem 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+/* Transition Tables Styling - Clean & Simple */
+.table-wrapper {
+  overflow-x: auto;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  background-color: var(--bg-secondary);
+  box-shadow: var(--shadow-sm);
+}
+
+table.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  text-align: left;
+}
+
+table.data-table th {
+  background-color: var(--bg-tertiary);
+  color: var(--text-main);
+  padding: 10px 14px;
+  border-bottom: 2px solid var(--border-color);
+  white-space: nowrap;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+}
+
+table.data-table td {
+  padding: 9px 14px;
+  border-bottom: 1px solid var(--border-color);
+  color: var(--text-main);
+  vertical-align: middle;
+}
+
+table.data-table tr:last-child td {
+  border-bottom: none;
+}
+
+table.data-table tr:hover td {
+  background-color: rgba(59, 130, 246, 0.06);
+}
+
+table.data-table tr.active-state-row td {
+  background-color: rgba(59, 130, 246, 0.22);
+  color: var(--text-main);
+  font-weight: bold;
+}
+
+/* Badges for States in Tables */
+.state-cell-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.state-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  color: var(--text-main);
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 4px;
+}
+
+.state-pill-main {
+  background-color: rgba(59, 130, 246, 0.15);
+  border-color: var(--primary-color);
+  color: var(--primary-color);
+  font-size: 0.85rem;
+}
+
+.badge-start {
+  background-color: rgba(16, 185, 129, 0.2);
+  color: var(--accent-color);
+  border: 1px solid var(--accent-color);
+  font-size: 0.68rem;
+  font-weight: 800;
+  padding: 2px 5px;
+  border-radius: 3px;
+  letter-spacing: 0.04em;
+}
+
+.badge-accept {
+  background-color: rgba(245, 158, 11, 0.2);
+  color: var(--warning-color);
+  border: 1px solid var(--warning-color);
+  font-size: 0.68rem;
+  font-weight: 800;
+  padding: 2px 5px;
+  border-radius: 3px;
+  letter-spacing: 0.04em;
+}
+
+.badge-both {
+  background: linear-gradient(90deg, rgba(16, 185, 129, 0.2), rgba(245, 158, 11, 0.2));
+  color: #38bdf8;
+  border: 1px solid #38bdf8;
+  font-size: 0.68rem;
+  font-weight: 800;
+  padding: 2px 5px;
+  border-radius: 3px;
+}
+
+.badge-normal {
+  opacity: 0;
+  display: inline-block;
+  width: 50px;
+}
+
+.empty-symbol {
+  color: var(--text-muted);
+  font-weight: normal;
+  font-size: 0.95rem;
+}
+
+.subset-badge {
+  font-family: var(--font-mono);
+  background-color: var(--bg-tertiary);
+  padding: 2px 6px;
+  border-radius: 4px;
+  color: var(--text-muted);
+  font-size: 0.82rem;
+}
+
+/* Simulator Controls & Trace */
+.sim-controls {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.trace-stepper {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  margin-top: 8px;
+  padding: 8px;
+  background-color: var(--bg-secondary);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-color);
+}
+
+.verdict-box {
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius-md);
+  margin-top: 8px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-weight: 600;
+}
+
+.verdict-accepted {
+  background-color: rgba(16, 185, 129, 0.15);
+  border: 1px solid var(--accent-color);
+  color: var(--accent-color);
+}
+
+.verdict-rejected {
+  background-color: rgba(239, 68, 68, 0.15);
+  border: 1px solid var(--danger-color);
+  color: var(--danger-color);
+}
+
+/* Theory Info Blocks */
+.info-callout {
+  background-color: var(--bg-tertiary);
+  border-left: 4px solid var(--primary-color);
+  padding: 1rem 1.25rem;
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  font-size: 0.9rem;
+  line-height: 1.6;
+}
+
+.info-callout h4 {
+  font-size: 1rem;
+  margin-bottom: 0.5rem;
+  color: var(--text-main);
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+  .app-container {
+    flex-direction: column;
+    height: auto;
+  }
+  .sidebar {
+    width: 100%;
+    border-right: none;
+    border-bottom: 1px solid var(--border-color);
+  }
+  .main-viewport {
+    min-height: 600px;
+  }
+}
+
+/* Modal Backdrop & Card */
+.modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal-card {
+  background-color: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+  width: 90%;
+  max-width: 420px;
+  overflow: hidden;
+  animation: modalFadeIn 0.2s ease-out;
+}
+
+@keyframes modalFadeIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.modal-header {
+  padding: 1rem 1.25rem;
+  background-color: var(--bg-tertiary);
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.modal-header h3 {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.modal-close {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 1.5rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: color 0.15s ease;
+}
+
+.modal-close:hover {
+  color: var(--danger-color);
+}
+
+.modal-body {
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+</style>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚡</text></svg>">
+</head>
+<body>
+
+  <!-- Top Navigation Bar -->
+  <header>
+    <div class="logo-area">
+      <div class="logo-icon">δ</div>
+      <div class="title-group">
+        <h1>Regex to DFA Converter & Simulator</h1>
+        <p>Theory of Computation • Thompson's Construction • Subset Construction • Hopcroft Minimization</p>
+      </div>
+    </div>
+    <div class="header-actions">
+      <button id="mobile-qr-btn" class="btn btn-secondary btn-sm" title="Open on Mobile via Link or QR Code">
+        📱 Mobile Link
+      </button>
+      <button id="theme-toggle-btn" class="btn btn-secondary btn-sm" title="Toggle Light / Dark Mode">
+        🌓 Theme
+      </button>
+      <a href="https://en.wikipedia.org/wiki/Powerset_construction" target="_blank" rel="noopener" class="btn btn-secondary btn-sm">
+        📖 TOC Reference
+      </a>
+    </div>
+  </header>
+
+  <!-- Main Workspace -->
+  <div class="app-container">
+
+    <!-- Left Control Sidebar -->
+    <aside class="sidebar">
+
+      <!-- Regex Input Card -->
+      <div class="control-card">
+        <div class="card-title">
+          <span>Regular Expression Input</span>
+          <span id="alphabet-badge" class="tab-badge">Σ = { }</span>
+        </div>
+
+        <div class="input-group">
+          <label for="regex-input">Enter Infix Regex:</label>
+          <input type="text" id="regex-input" value="(a|b)*abb" placeholder="e.g. (a|b)*abb or (0|1)*00" autocomplete="off" spellcheck="false">
+        </div>
+
+        <!-- Quick Symbol Inserter -->
+        <div class="operator-bar">
+          <button class="op-btn" data-insert="*">* (Star)</button>
+          <button class="op-btn" data-insert="|">| (Union)</button>
+          <button class="op-btn" data-insert="+">+ (Plus)</button>
+          <button class="op-btn" data-insert="?">? (Optional)</button>
+          <button class="op-btn" data-insert="ε">ε (Epsilon)</button>
+          <button class="op-btn" data-insert="(">(</button>
+          <button class="op-btn" data-insert=")">)</button>
+        </div>
+
+        <!-- TOC Preset Expressions -->
+        <div class="input-group">
+          <label for="preset-select">Standard TOC Presets:</label>
+          <select id="preset-select">
+            <option value="">-- Choose a textbook example --</option>
+            <option value="(a|b)*abb">(a|b)*abb — Strings ending with 'abb'</option>
+            <option value="a(b|c)*d">a(b|c)*d — Starts with 'a', ends with 'd'</option>
+            <option value="(0|1)*00(0|1)*">(0|1)*00(0|1)* — Substring '00'</option>
+            <option value="(a|b)*a(a|b)">(a|b)*a(a|b) — 2nd symbol from end is 'a'</option>
+            <option value="(00|11)*">(00|11)* — Even length repeating pairs</option>
+            <option value="a+b*">a+b* — At least one 'a', then any 'b's</option>
+            <option value="(0|1)*1">(0|1)*1 — Odd binary numbers</option>
+            <option value="a(a|b)*b|b(a|b)*a">Different start and end symbols</option>
+          </select>
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 8px; font-size: 0.8rem;">
+          <input type="checkbox" id="plus-union-check">
+          <label for="plus-union-check" style="cursor: pointer; font-size: 0.8rem; color: var(--text-muted);">
+            Treat binary '+' as union (e.g. <code>a+b</code> as <code>a|b</code>)
+          </label>
+        </div>
+
+        <button id="convert-btn" class="btn btn-primary" style="width: 100%;">
+          ⚡ Convert to DFA & Minimize
+        </button>
+      </div>
+
+      <!-- Quick String Simulator Card -->
+      <div class="control-card">
+        <div class="card-title">
+          <span>String Validator / Simulator</span>
+        </div>
+
+        <div class="input-group">
+          <label for="test-string-input">Input String (w):</label>
+          <input type="text" id="test-string-input" value="abb" placeholder="Enter string, e.g. abb or ε" autocomplete="off" spellcheck="false">
+        </div>
+
+        <div class="sim-controls">
+          <button id="sim-test-btn" class="btn btn-accent btn-sm">▶ Test String</button>
+          <button id="sim-step-btn" class="btn btn-secondary btn-sm">👣 Step-by-Step</button>
+          <button id="sim-reset-btn" class="btn btn-secondary btn-sm">↺ Reset</button>
+        </div>
+
+        <div id="sim-stepper-container"></div>
+        <div id="sim-verdict-container"></div>
+      </div>
+
+      <!-- Automaton Stats Card -->
+      <div class="control-card">
+        <div class="card-title">
+          <span>Automata Complexity Metrics</span>
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; text-align: center;">
+          <div style="background-color: var(--bg-secondary); padding: 8px; border-radius: 4px; border: 1px solid var(--border-color);">
+            <div style="font-size: 0.75rem; color: var(--text-muted);">ε-NFA</div>
+            <div id="stat-nfa-states" style="font-size: 1.25rem; font-weight: bold; color: var(--primary-color);">0</div>
+            <div style="font-size: 0.7rem; color: var(--text-muted);">States</div>
+          </div>
+          <div style="background-color: var(--bg-secondary); padding: 8px; border-radius: 4px; border: 1px solid var(--border-color);">
+            <div style="font-size: 0.75rem; color: var(--text-muted);">DFA</div>
+            <div id="stat-dfa-states" style="font-size: 1.25rem; font-weight: bold; color: var(--accent-color);">0</div>
+            <div style="font-size: 0.7rem; color: var(--text-muted);">States</div>
+          </div>
+          <div style="background-color: var(--bg-secondary); padding: 8px; border-radius: 4px; border: 1px solid var(--border-color);">
+            <div style="font-size: 0.75rem; color: var(--text-muted);">Min DFA</div>
+            <div id="stat-min-states" style="font-size: 1.25rem; font-weight: bold; color: var(--warning-color);">0</div>
+            <div style="font-size: 0.7rem; color: var(--text-muted);">States</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Export Actions Card -->
+      <div class="control-card">
+        <div class="card-title">
+          <span>Export Options</span>
+        </div>
+        <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+          <button id="export-svg-btn" class="btn btn-secondary btn-sm">💾 Download SVG</button>
+          <button id="export-latex-btn" class="btn btn-secondary btn-sm">📋 Copy LaTeX Table</button>
+          <button id="export-markdown-btn" class="btn btn-secondary btn-sm">📝 Copy Markdown</button>
+        </div>
+      </div>
+
+    </aside>
+
+    <!-- Main Viewport Area -->
+    <main class="main-viewport">
+
+      <!-- Navigation Tabs -->
+      <nav class="tabs-header">
+        <button class="tab-btn active" data-tab="tab-min-dfa">
+          Minimized DFA <span class="tab-badge" id="badge-min-dfa">Hopcroft</span>
+        </button>
+        <button class="tab-btn" data-tab="tab-dfa">
+          DFA <span class="tab-badge" id="badge-dfa">Subset Construction</span>
+        </button>
+        <button class="tab-btn" data-tab="tab-nfa">
+          ε-NFA <span class="tab-badge" id="badge-nfa">Thompson</span>
+        </button>
+        <button class="tab-btn" data-tab="tab-compare">
+          📊 All 3 Tables & Comparison
+        </button>
+        <button class="tab-btn" data-tab="tab-steps">
+          Step-by-Step Proofs & Logs
+        </button>
+        <button class="tab-btn" data-tab="tab-batch">
+          Batch String Tester
+        </button>
+        <button class="tab-btn" data-tab="tab-theory">
+          TOC Theory Guide
+        </button>
+      </nav>
+
+      <!-- TAB 1: Minimized DFA View -->
+      <section id="tab-min-dfa" class="tab-content active">
+        <div class="graph-container" id="graph-container-min-dfa">
+          <div class="graph-info-overlay">
+            <strong>Minimized DFA Diagram (Hopcroft Equivalence)</strong>
+            <span id="min-dfa-status-text">States: 0 | Start: — | Accept: { }</span>
+          </div>
+          <div class="graph-controls-overlay">
+            <button class="btn btn-secondary btn-sm" id="zoom-in-min">+</button>
+            <button class="btn btn-secondary btn-sm" id="zoom-out-min">-</button>
+            <button class="btn btn-secondary btn-sm" id="zoom-reset-min">Fit</button>
+          </div>
+        </div>
+
+        <div class="bottom-panel" id="panel-min-dfa">
+          <div class="bottom-panel-header">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span>Minimized DFA Transition Table δ(M, a)</span>
+              <button class="btn btn-secondary btn-sm copy-min-table-btn">📋 Copy Table</button>
+            </div>
+            <div class="view-mode-bar">
+              <button class="view-btn active" data-target="tab-min-dfa" data-mode="split">Split</button>
+              <button class="view-btn" data-target="tab-min-dfa" data-mode="diagram">Diagram Only</button>
+              <button class="view-btn" data-target="tab-min-dfa" data-mode="table">Table Only</button>
+            </div>
+          </div>
+          <div class="bottom-panel-body" id="min-dfa-table-container"></div>
+        </div>
+      </section>
+
+      <!-- TAB 2: DFA (Subset Construction) View -->
+      <section id="tab-dfa" class="tab-content">
+        <div class="graph-container" id="graph-container-dfa">
+          <div class="graph-info-overlay">
+            <strong>DFA Diagram (Subset Construction)</strong>
+            <span id="dfa-status-text">States: 0 | Start: — | Accept: { }</span>
+          </div>
+          <div class="graph-controls-overlay">
+            <button class="btn btn-secondary btn-sm" id="zoom-in-dfa">+</button>
+            <button class="btn btn-secondary btn-sm" id="zoom-out-dfa">-</button>
+            <button class="btn btn-secondary btn-sm" id="zoom-reset-dfa">Fit</button>
+          </div>
+        </div>
+
+        <div class="bottom-panel" id="panel-dfa">
+          <div class="bottom-panel-header">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span>DFA Transition Table with NFA State Subsets</span>
+              <button class="btn btn-secondary btn-sm copy-dfa-table-btn">📋 Copy Table</button>
+            </div>
+            <div class="view-mode-bar">
+              <button class="view-btn active" data-target="tab-dfa" data-mode="split">Split</button>
+              <button class="view-btn" data-target="tab-dfa" data-mode="diagram">Diagram Only</button>
+              <button class="view-btn" data-target="tab-dfa" data-mode="table">Table Only</button>
+            </div>
+          </div>
+          <div class="bottom-panel-body" id="dfa-table-container"></div>
+        </div>
+      </section>
+
+      <!-- TAB 3: ε-NFA (Thompson's Construction) View -->
+      <section id="tab-nfa" class="tab-content">
+        <div class="graph-container" id="graph-container-nfa">
+          <div class="graph-info-overlay">
+            <strong>ε-NFA Diagram (Thompson's Construction)</strong>
+            <span id="nfa-status-text">States: 0 | Start: q0 | Accept: { }</span>
+          </div>
+          <div class="graph-controls-overlay">
+            <button class="btn btn-secondary btn-sm" id="zoom-in-nfa">+</button>
+            <button class="btn btn-secondary btn-sm" id="zoom-out-nfa">-</button>
+            <button class="btn btn-secondary btn-sm" id="zoom-reset-nfa">Fit</button>
+          </div>
+        </div>
+
+        <div class="bottom-panel" id="panel-nfa">
+          <div class="bottom-panel-header">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span>ε-NFA Transition Table δ(q, a)</span>
+              <button class="btn btn-secondary btn-sm copy-nfa-table-btn">📋 Copy Table</button>
+            </div>
+            <div class="view-mode-bar">
+              <button class="view-btn active" data-target="tab-nfa" data-mode="split">Split</button>
+              <button class="view-btn" data-target="tab-nfa" data-mode="diagram">Diagram Only</button>
+              <button class="view-btn" data-target="tab-nfa" data-mode="table">Table Only</button>
+            </div>
+          </div>
+          <div class="bottom-panel-body" id="nfa-table-container"></div>
+        </div>
+      </section>
+
+      <!-- TAB 4: All 3 Tables & Comparison -->
+      <section id="tab-compare" class="tab-content">
+        <div class="scrollable-page">
+
+          <!-- Card 1: Minimized DFA Table -->
+          <div class="control-card">
+            <div class="card-title">
+              <span>Stage 3: Minimized DFA Transition Table (Final Minimal Machine)</span>
+              <button class="btn btn-secondary btn-sm copy-min-table-btn">📋 Copy Markdown</button>
+            </div>
+            <p style="font-size: 0.85rem; color: var(--text-muted);">
+              Obtained after partitioning equivalent states with Hopcroft's algorithm. Minimum possible number of states.
+            </p>
+            <div class="table-wrapper" id="compare-min-table-container"></div>
+          </div>
+
+          <!-- Card 2: DFA Table -->
+          <div class="control-card">
+            <div class="card-title">
+              <span>Stage 2: Deterministic Finite Automaton (DFA) Transition Table</span>
+              <button class="btn btn-secondary btn-sm copy-dfa-table-btn">📋 Copy Markdown</button>
+            </div>
+            <p style="font-size: 0.85rem; color: var(--text-muted);">
+              Obtained via Rabin-Scott Subset Construction. Each row maps an equivalent subset of NFA states.
+            </p>
+            <div class="table-wrapper" id="compare-dfa-table-container"></div>
+          </div>
+
+          <!-- Card 3: NFA Table -->
+          <div class="control-card">
+            <div class="card-title">
+              <span>Stage 1: Non-Deterministic Finite Automaton (ε-NFA) Transition Table</span>
+              <button class="btn btn-secondary btn-sm copy-nfa-table-btn">📋 Copy Markdown</button>
+            </div>
+            <p style="font-size: 0.85rem; color: var(--text-muted);">
+              Inductively constructed from the postfix regular expression using Thompson's structural rules.
+            </p>
+            <div class="table-wrapper" id="compare-nfa-table-container"></div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- TAB 5: Step-by-Step Proofs & Conversion Logs -->
+      <section id="tab-steps" class="tab-content">
+        <div class="scrollable-page">
+
+          <!-- Stage 1: Postfix Conversion -->
+          <div class="control-card">
+            <div class="card-title">
+              <span>Stage 0: Preprocessing & Shunting-Yard Infix to Postfix</span>
+            </div>
+            <p style="font-size: 0.85rem; color: var(--text-muted);">
+              Implicit concatenation operators (<code>·</code>) are inserted before converting the regular expression into Reverse Polish Notation (Postfix) to make operator precedence explicit.
+            </p>
+            <div style="font-family: var(--font-mono); background-color: var(--bg-secondary); padding: 12px; border-radius: 4px; font-size: 0.9rem; display: flex; flex-direction: column; gap: 6px;">
+              <div><strong>Raw Input:</strong> <span id="step-raw-regex" style="color: var(--primary-color);"></span></div>
+              <div><strong>Explicit Concat:</strong> <span id="step-concat-regex" style="color: var(--accent-color);"></span></div>
+              <div><strong>Postfix (RPN):</strong> <span id="step-postfix-regex" style="color: var(--warning-color);"></span></div>
+            </div>
+          </div>
+
+          <!-- Stage 2: Subset Construction Table -->
+          <div class="control-card">
+            <div class="card-title">
+              <span>Stage 2: Powerset Construction Detailed Log (ε-Closure & Transitions)</span>
+            </div>
+            <p style="font-size: 0.85rem; color: var(--text-muted);">
+              Shows the step-by-step computation of <code>move(State, symbol)</code> and <code>ε-closure(move)</code> for each unique DFA state subset.
+            </p>
+            <div class="table-wrapper" id="steps-subset-table-container"></div>
+          </div>
+
+          <!-- Stage 3: Hopcroft Partition Refinement Log -->
+          <div class="control-card">
+            <div class="card-title">
+              <span>Stage 3: Hopcroft DFA Minimization Iterations</span>
+            </div>
+            <p style="font-size: 0.85rem; color: var(--text-muted);">
+              Begins with partition <code>P₀ = { Non-Accepting, Accepting }</code> and iteratively refines groups based on transition equivalence until a fixed point is reached.
+            </p>
+            <div id="steps-minimization-container" style="display: flex; flex-direction: column; gap: 8px;"></div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- TAB 6: Batch Tester -->
+      <section id="tab-batch" class="tab-content">
+        <div class="scrollable-page">
+          <div class="control-card">
+            <div class="card-title">
+              <span>Batch String Verification Suite</span>
+            </div>
+            <p style="font-size: 0.85rem; color: var(--text-muted);">
+              Enter multiple strings (one per line or comma-separated) to test language membership simultaneously on the DFA:
+            </p>
+            <textarea id="batch-input-area" rows="6" style="width: 100%; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: var(--radius-sm); color: var(--text-main); font-family: var(--font-mono); padding: 10px;" placeholder="Enter strings:
+abb
+aabb
+ab
+a
+ε"></textarea>
+            <div>
+              <button id="batch-run-btn" class="btn btn-primary btn-sm">Run Batch Tests</button>
+            </div>
+            <div class="table-wrapper" style="margin-top: 10px;">
+              <table class="data-table" id="batch-results-table">
+                <thead>
+                  <tr>
+                    <th>Input String</th>
+                    <th>Length</th>
+                    <th>Result</th>
+                    <th>Final State</th>
+                    <th>Detailed Path</th>
+                  </tr>
+                </thead>
+                <tbody id="batch-results-body">
+                  <tr><td colspan="5" style="text-align: center; color: var(--text-muted);">Click "Run Batch Tests" to verify strings.</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 7: TOC Theory Guide -->
+      <section id="tab-theory" class="tab-content">
+        <div class="scrollable-page">
+          <div class="info-callout">
+            <h4>1. Mathematical Definition of a DFA</h4>
+            <p>
+              A <strong>Deterministic Finite Automaton (DFA)</strong> is formally defined as a 5-tuple:
+              <br><code>M = (Q, Σ, δ, q₀, F)</code>
+            </p>
+            <ul style="margin-left: 20px; margin-top: 8px;">
+              <li><strong>Q:</strong> A finite set of states.</li>
+              <li><strong>Σ:</strong> A finite alphabet of input symbols.</li>
+              <li><strong>δ:</strong> The transition function <code>δ : Q × Σ → Q</code> (deterministic mapping).</li>
+              <li><strong>q₀:</strong> The start state, where <code>q₀ ∈ Q</code>.</li>
+              <li><strong>F:</strong> The set of accepting / final states, where <code>F ⊆ Q</code>.</li>
+            </ul>
+          </div>
+
+          <div class="info-callout">
+            <h4>2. Thompson's Construction Algorithm (Regex → ε-NFA)</h4>
+            <p>
+              Ken Thompson's algorithm constructs an ε-NFA inductively from the syntax of regular expressions:
+            </p>
+            <ul style="margin-left: 20px; margin-top: 8px;">
+              <li><strong>Base Symbol 'a':</strong> Two states connected by edge labeled <code>a</code>.</li>
+              <li><strong>Concatenation (AB):</strong> The accept state of A connects to the start state of B via an <code>ε</code> transition.</li>
+              <li><strong>Alternation (A | B):</strong> New start state forks with <code>ε</code> to A.start and B.start; accepts merge with <code>ε</code> into a new accept.</li>
+              <li><strong>Kleene Star (A*):</strong> Introduces an <code>ε</code>-loop for repetition and an <code>ε</code>-bypass for 0 occurrences.</li>
+            </ul>
+            <p style="margin-top: 8px;"><strong>Time & Space Complexity:</strong> O(n) where n is the length of the regular expression.</p>
+          </div>
+
+          <div class="info-callout">
+            <h4>3. Powerset / Subset Construction (ε-NFA → DFA)</h4>
+            <p>
+              Invented by Michael O. Rabin and Dana Scott (1959 Turing Award):
+            </p>
+            <ul style="margin-left: 20px; margin-top: 8px;">
+              <li>Computes <strong>ε-closure(S)</strong>: the set of states reachable via only ε-transitions from state set S.</li>
+              <li>Each state in the DFA corresponds to a distinct <em>subset</em> of NFA states.</li>
+              <li>Transition on symbol <code>a</code>: <code>DFA_Next = ε-closure(move(DFA_Current, a))</code>.</li>
+              <li>A DFA state is accepting if it contains at least one NFA accepting state.</li>
+            </ul>
+            <p style="margin-top: 8px;"><strong>Complexity:</strong> Up to <code>2^|Q_NFA|</code> worst-case states, but in practice typically linear/polynomial for standard expressions.</p>
+          </div>
+
+          <div class="info-callout">
+            <h4>4. Hopcroft's Algorithm (DFA Minimization)</h4>
+            <p>
+              Finds the unique minimal state DFA accepting the same language (Myhill-Nerode Theorem):
+            </p>
+            <ul style="margin-left: 20px; margin-top: 8px;">
+              <li>Starts by separating states into two equivalence classes: <strong>F</strong> (accepting) and <strong>Q \ F</strong> (non-accepting).</li>
+              <li>Repeatedly partitions equivalence classes whenever two states transition to different classes on any alphabet symbol.</li>
+              <li>Terminates when no further partitions occur, yielding the minimal DFA with the smallest possible number of states.</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- Mobile Modal -->
+  <div id="mobile-modal" class="modal-backdrop" style="display: none;">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>📱 Open on Your Mobile Phone</h3>
+        <button id="close-modal-btn" class="modal-close">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 12px;">
+          Make sure your phone is connected to the same Wi-Fi network as this computer, then open this link or scan the QR code:
+        </p>
+        <div class="input-group" style="margin-bottom: 14px;">
+          <label>Mobile URL:</label>
+          <div style="display: flex; gap: 6px;">
+            <input type="text" id="mobile-url-input" readonly value="" style="font-weight: bold; color: var(--primary-color);">
+            <button id="copy-mobile-url-btn" class="btn btn-primary btn-sm">Copy</button>
+          </div>
+        </div>
+        <div style="text-align: center; padding: 12px; background: white; border-radius: var(--radius-sm); display: inline-block; margin: 0 auto; width: 100%;">
+          <img id="mobile-qr-img" src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=" alt="Scan QR Code to open on Mobile" width="180" height="180" style="display: block; margin: 0 auto;">
+          <div style="font-size: 0.75rem; color: #475569; margin-top: 6px; font-weight: 600;">Scan with phone camera</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+
+/* --- Module: regex-parser.js --- */
+/**
+ * Regex Parser & Preprocessor
+ * Handles tokenization, explicit concatenation insertion, and Infix to Postfix conversion
+ * using the Shunting-Yard Algorithm.
+ */
+
+const EPSILON = 'ε';
+
+// Operators definition
+const OPERATORS = {
+  KLEENE: '*',
+  PLUS: '+',
+  OPTIONAL: '?',
+  CONCAT: '·', // using middle dot for visual clarity in AST/postfix
+  UNION: '|'
+};
+
+const PRECEDENCE = {
+  [OPERATORS.KLEENE]: 4,
+  [OPERATORS.PLUS]: 4,
+  [OPERATORS.OPTIONAL]: 4,
+  [OPERATORS.CONCAT]: 3,
+  [OPERATORS.UNION]: 2,
+  '(': 1
+};
+
+/**
+ * Checks if a character/token is an operand (letter, digit, epsilon, etc.)
+ */
+function isOperand(token) {
+  if (!token) return false;
+  return (
+    token !== OPERATORS.UNION &&
+    token !== OPERATORS.CONCAT &&
+    token !== OPERATORS.KLEENE &&
+    token !== OPERATORS.PLUS &&
+    token !== OPERATORS.OPTIONAL &&
+    token !== '(' &&
+    token !== ')'
+  );
+}
+
+/**
+ * Normalizes input regex string:
+ * - standardizes epsilon representations (e.g., 'eps', 'epsilon', '@', 'lambda' -> 'ε')
+ * - handles binary '+' as union if chosen or standard '|'
+ * - strips unneeded whitespace
+ */
+function normalizeRegex(regexStr, options = { unionPlus: false }) {
+  if (!regexStr || typeof regexStr !== 'string') return '';
+  let str = regexStr.trim();
+
+  // Normalize epsilon representations
+  str = str.replace(/\\epsilon|epsilon|eps|\\lambda|lambda|@/gi, EPSILON);
+
+  // If unionPlus is enabled, convert '+' used as binary union to '|'
+  // (e.g. 'a+b' where + is not following an operator or at start)
+  if (options.unionPlus) {
+    let out = '';
+    for (let i = 0; i < str.length; i++) {
+      const c = str[i];
+      if (c === '+') {
+        const prev = i > 0 ? str[i - 1] : null;
+        const next = i < str.length - 1 ? str[i + 1] : null;
+        // If preceded by an operand or ')' or '*' and followed by an operand or '(', treat as union
+        if (prev && next && (isOperand(prev) || prev === ')' || prev === '*' || prev === '?') &&
+            (isOperand(next) || next === '(')) {
+          out += '|';
+          continue;
+        }
+      }
+      out += c;
+    }
+    str = out;
+  }
+
+  return str;
+}
+
+/**
+ * Inserts explicit concatenation operators '·' into the regex string
+ */
+function insertConcatOperators(regexStr) {
+  let result = '';
+  for (let i = 0; i < regexStr.length; i++) {
+    const current = regexStr[i];
+    result += current;
+
+    if (i + 1 < regexStr.length) {
+      const next = regexStr[i + 1];
+
+      // Conditions to insert concatenation '·' between current and next:
+      // 1. current is operand, next is operand: e.g. "ab" -> "a·b"
+      // 2. current is operand, next is '(': e.g. "a(" -> "a·("
+      // 3. current is post-unary operator (*, +, ?), next is operand: e.g. "a*b" -> "a*·b"
+      // 4. current is post-unary operator (*, +, ?), next is '(': e.g. "a*(" -> "a*·("
+      // 5. current is ')', next is operand: e.g. ")a" -> ")·a"
+      // 6. current is ')', next is '(': e.g. ")(" -> ")·("
+
+      const isCurrentOperand = isOperand(current);
+      const isNextOperand = isOperand(next);
+
+      const isCurrentPostUnary =
+        current === OPERATORS.KLEENE ||
+        current === OPERATORS.PLUS ||
+        current === OPERATORS.OPTIONAL;
+
+      if (
+        (isCurrentOperand && isNextOperand) ||
+        (isCurrentOperand && next === '(') ||
+        (isCurrentPostUnary && isNextOperand) ||
+        (isCurrentPostUnary && next === '(') ||
+        (current === ')' && isNextOperand) ||
+        (current === ')' && next === '(')
+      ) {
+        result += OPERATORS.CONCAT;
+      }
+    }
+  }
+  return result;
+}
+
+/**
+ * Converts infix regular expression with explicit concatenation to postfix notation
+ * using the Shunting-Yard algorithm.
+ * Returns { postfix: string, steps: Array<{token, stack, output, action}> }
+ */
+function infixToPostfix(regexWithConcat) {
+  const output = [];
+  const stack = [];
+  const steps = [];
+
+  for (let i = 0; i < regexWithConcat.length; i++) {
+    const token = regexWithConcat[i];
+
+    if (isOperand(token)) {
+      output.push(token);
+      steps.push({
+        token,
+        stack: stack.join(''),
+        output: output.join(''),
+        action: `Push operand '${token}' to output`
+      });
+    } else if (token === '(') {
+      stack.push(token);
+      steps.push({
+        token,
+        stack: stack.join(''),
+        output: output.join(''),
+        action: `Push '(' to operator stack`
+      });
+    } else if (token === ')') {
+      let matched = false;
+      while (stack.length > 0) {
+        const top = stack.pop();
+        if (top === '(') {
+          matched = true;
+          break;
+        }
+        output.push(top);
+      }
+      if (!matched) {
+        throw new Error('Mismatched parentheses: unexpected closing bracket `)`');
+      }
+      steps.push({
+        token,
+        stack: stack.join(''),
+        output: output.join(''),
+        action: `Pop operators until '(' into output`
+      });
+    } else {
+      // Unary operators (*, +, ?) have highest precedence and are postfix
+      if (token === OPERATORS.KLEENE || token === OPERATORS.PLUS || token === OPERATORS.OPTIONAL) {
+        // Unary postfix operators can be immediately placed in postfix or handled via stack
+        // In standard shunting-yard for unary postfix, we output it after its operand
+        output.push(token);
+        steps.push({
+          token,
+          stack: stack.join(''),
+          output: output.join(''),
+          action: `Append unary operator '${token}' directly to output`
+        });
+      } else {
+        // Binary operators ('|', '·')
+        while (
+          stack.length > 0 &&
+          stack[stack.length - 1] !== '(' &&
+          (PRECEDENCE[stack[stack.length - 1]] || 0) >= (PRECEDENCE[token] || 0)
+        ) {
+          output.push(stack.pop());
+        }
+        stack.push(token);
+        steps.push({
+          token,
+          stack: stack.join(''),
+          output: output.join(''),
+          action: `Push operator '${token}' to stack (after popping higher/equal precedence)`
+        });
+      }
+    }
+  }
+
+  while (stack.length > 0) {
+    const top = stack.pop();
+    if (top === '(' || top === ')') {
+      throw new Error('Mismatched parentheses: unmatched opening bracket `(`');
+    }
+    output.push(top);
+    steps.push({
+      token: 'EOF',
+      stack: stack.join(''),
+      output: output.join(''),
+      action: `Pop remaining '${top}' to output`
+    });
+  }
+
+  return {
+    postfix: output.join(''),
+    tokens: output,
+    steps
+  };
+}
+
+/**
+ * Full parsing pipeline:
+ * Input raw regex -> normalized -> explicit concat -> postfix
+ */
+function parseRegex(rawInput, options = {}) {
+  if (!rawInput || rawInput.trim() === '') {
+    throw new Error('Empty regular expression');
+  }
+  const normalized = normalizeRegex(rawInput, options);
+  const withConcat = insertConcatOperators(normalized);
+  const postfixResult = infixToPostfix(withConcat);
+
+  // Extract alphabet (all unique operands excluding epsilon)
+  const alphabetSet = new Set();
+  for (const char of postfixResult.postfix) {
+    if (isOperand(char) && char !== EPSILON) {
+      alphabetSet.add(char);
+    }
+  }
+
+  const alphabet = Array.from(alphabetSet).sort();
+
+  return {
+    raw: rawInput,
+    normalized,
+    withConcat,
+    postfix: postfixResult.postfix,
+    tokens: postfixResult.tokens,
+    steps: postfixResult.steps,
+    alphabet
+  };
+}
+
+/* --- Module: nfa.js --- */
+/**
+ * Thompson's Construction Algorithm
+ * Converts Postfix Regular Expression into an ε-NFA (Non-Deterministic Finite Automaton).
+ */
+
+
+class NFAState {
+  constructor(id) {
+    this.id = id;
+    // Map: symbol -> Set of destination state IDs
+    this.transitions = new Map();
+  }
+
+  addTransition(symbol, targetStateId) {
+    if (!this.transitions.has(symbol)) {
+      this.transitions.set(symbol, new Set());
+    }
+    this.transitions.get(symbol).add(targetStateId);
+  }
+}
+
+class NFAFragment {
+  constructor(startStateId, acceptStateId) {
+    this.start = startStateId;
+    this.accept = acceptStateId;
+  }
+}
+
+class NFA {
+  constructor() {
+    this.states = new Map(); // id -> NFAState
+    this.startState = null;
+    this.acceptStates = new Set();
+    this.alphabet = new Set();
+    this.stateCounter = 0;
+    this.constructionSteps = [];
+  }
+
+  createState() {
+    const id = this.stateCounter++;
+    const state = new NFAState(id);
+    this.states.set(id, state);
+    return id;
+  }
+
+  addTransition(fromId, symbol, toId) {
+    if (!this.states.has(fromId)) this.createState();
+    if (!this.states.has(toId)) this.createState();
+
+    this.states.get(fromId).addTransition(symbol, toId);
+    if (symbol !== EPSILON) {
+      this.alphabet.add(symbol);
+    }
+  }
+
+  /**
+   * Get all transitions in flat list format: [{ from, symbol, to }]
+   */
+  getTransitionsList() {
+    const list = [];
+    for (const [fromId, state] of this.states.entries()) {
+      for (const [symbol, targets] of state.transitions.entries()) {
+        for (const targetId of targets) {
+          list.push({ from: fromId, symbol, to: targetId });
+        }
+      }
+    }
+    return list;
+  }
+
+  /**
+   * Generates formatted transition table data for display
+   */
+  getTransitionTable(orderedAlphabet = null) {
+    const alphabetList = orderedAlphabet ? Array.from(orderedAlphabet) : Array.from(this.alphabet).sort();
+    const headers = ['State', ...alphabetList, EPSILON];
+    const rows = [];
+
+    const sortedStates = Array.from(this.states.keys()).sort((a, b) => a - b);
+    for (const stateId of sortedStates) {
+      const state = this.states.get(stateId);
+      const isStart = stateId === this.startState;
+      const isAccept = this.acceptStates.has(stateId);
+
+      let label = `q${stateId}`;
+      if (isStart && isAccept) label = `-> *q${stateId}`;
+      else if (isStart) label = `-> q${stateId}`;
+      else if (isAccept) label = `*q${stateId}`;
+
+      const row = {
+        stateId,
+        label,
+        isStart,
+        isAccept,
+        cells: {}
+      };
+
+      for (const symbol of [...alphabetList, EPSILON]) {
+        const targets = state.transitions.get(symbol);
+        if (targets && targets.size > 0) {
+          const targetArray = Array.from(targets).sort((a, b) => a - b);
+          row.cells[symbol] = `{${targetArray.map(t => `q${t}`).join(', ')}}`;
+        } else {
+          row.cells[symbol] = '∅';
+        }
+      }
+      rows.push(row);
+    }
+
+    return { headers, rows, alphabet: alphabetList };
+  }
+}
+
+/**
+ * Builds an ε-NFA from a postfix regex using Thompson's Construction.
+ */
+function buildNFAFromPostfix(postfixTokens, explicitAlphabet = []) {
+  const nfa = new NFA();
+  const stack = []; // Stack of NFAFragment
+  const steps = [];
+
+  for (const token of postfixTokens) {
+    if (isOperand(token)) {
+      // Base Case: Single symbol or epsilon
+      const startId = nfa.createState();
+      const acceptId = nfa.createState();
+      nfa.addTransition(startId, token, acceptId);
+
+      const fragment = new NFAFragment(startId, acceptId);
+      stack.push(fragment);
+
+      steps.push({
+        operator: `Symbol '${token}'`,
+        description: `Create initial state q${startId} and accept state q${acceptId} with transition q${startId} --${token}--> q${acceptId}.`,
+        fragmentStart: startId,
+        fragmentAccept: acceptId
+      });
+    } else if (token === OPERATORS.CONCAT) {
+      // Concatenation: A · B
+      if (stack.length < 2) {
+        throw new Error('Invalid regular expression: insufficient operands for concatenation');
+      }
+      const frag2 = stack.pop();
+      const frag1 = stack.pop();
+
+      // Connect frag1 accept to frag2 start with epsilon
+      nfa.addTransition(frag1.accept, EPSILON, frag2.start);
+
+      const newFrag = new NFAFragment(frag1.start, frag2.accept);
+      stack.push(newFrag);
+
+      steps.push({
+        operator: 'Concatenation (·)',
+        description: `Connect previous fragment's accept state q${frag1.accept} to next fragment's start state q${frag2.start} via ε.`,
+        fragmentStart: newFrag.start,
+        fragmentAccept: newFrag.accept
+      });
+    } else if (token === OPERATORS.UNION) {
+      // Union: A | B
+      if (stack.length < 2) {
+        throw new Error('Invalid regular expression: insufficient operands for alternation');
+      }
+      const frag2 = stack.pop();
+      const frag1 = stack.pop();
+
+      const newStart = nfa.createState();
+      const newAccept = nfa.createState();
+
+      // Epsilon transitions from newStart to both branch starts
+      nfa.addTransition(newStart, EPSILON, frag1.start);
+      nfa.addTransition(newStart, EPSILON, frag2.start);
+
+      // Epsilon transitions from both branch accepts to newAccept
+      nfa.addTransition(frag1.accept, EPSILON, newAccept);
+      nfa.addTransition(frag2.accept, EPSILON, newAccept);
+
+      const newFrag = new NFAFragment(newStart, newAccept);
+      stack.push(newFrag);
+
+      steps.push({
+        operator: 'Union (|)',
+        description: `Create new start q${newStart} splitting to q${frag1.start} & q${frag2.start} via ε; converge q${frag1.accept} & q${frag2.accept} into new accept q${newAccept} via ε.`,
+        fragmentStart: newFrag.start,
+        fragmentAccept: newFrag.accept
+      });
+    } else if (token === OPERATORS.KLEENE) {
+      // Kleene Star: A*
+      if (stack.length < 1) {
+        throw new Error('Invalid regular expression: insufficient operands for Kleene star');
+      }
+      const frag = stack.pop();
+      const newStart = nfa.createState();
+      const newAccept = nfa.createState();
+
+      // New start to fragment start
+      nfa.addTransition(newStart, EPSILON, frag.start);
+      // New start to new accept (for zero repetitions)
+      nfa.addTransition(newStart, EPSILON, newAccept);
+      // Fragment accept back to fragment start (for repetition)
+      nfa.addTransition(frag.accept, EPSILON, frag.start);
+      // Fragment accept to new accept
+      nfa.addTransition(frag.accept, EPSILON, newAccept);
+
+      const newFrag = new NFAFragment(newStart, newAccept);
+      stack.push(newFrag);
+
+      steps.push({
+        operator: 'Kleene Star (*)',
+        description: `Create new start q${newStart} and accept q${newAccept}. Add loop q${frag.accept} --ε--> q${frag.start} and bypass q${newStart} --ε--> q${newAccept}.`,
+        fragmentStart: newFrag.start,
+        fragmentAccept: newFrag.accept
+      });
+    } else if (token === OPERATORS.PLUS) {
+      // One or more: A+
+      if (stack.length < 1) {
+        throw new Error('Invalid regular expression: insufficient operands for plus');
+      }
+      const frag = stack.pop();
+      const newStart = nfa.createState();
+      const newAccept = nfa.createState();
+
+      // Must take at least one pass: newStart to frag.start
+      nfa.addTransition(newStart, EPSILON, frag.start);
+      // Loop back for repetition
+      nfa.addTransition(frag.accept, EPSILON, frag.start);
+      // frag accept to new accept
+      nfa.addTransition(frag.accept, EPSILON, newAccept);
+
+      const newFrag = new NFAFragment(newStart, newAccept);
+      stack.push(newFrag);
+
+      steps.push({
+        operator: 'Plus (+)',
+        description: `Create new start q${newStart} leading to q${frag.start}. Add loop q${frag.accept} --ε--> q${frag.start} and exit to q${newAccept}.`,
+        fragmentStart: newFrag.start,
+        fragmentAccept: newFrag.accept
+      });
+    } else if (token === OPERATORS.OPTIONAL) {
+      // Optional: A?
+      if (stack.length < 1) {
+        throw new Error('Invalid regular expression: insufficient operands for optional (?)');
+      }
+      const frag = stack.pop();
+      const newStart = nfa.createState();
+      const newAccept = nfa.createState();
+
+      nfa.addTransition(newStart, EPSILON, frag.start);
+      nfa.addTransition(newStart, EPSILON, newAccept);
+      nfa.addTransition(frag.accept, EPSILON, newAccept);
+
+      const newFrag = new NFAFragment(newStart, newAccept);
+      stack.push(newFrag);
+
+      steps.push({
+        operator: 'Optional (?)',
+        description: `Create new start q${newStart} with branch to q${frag.start} and bypass directly to q${newAccept} via ε.`,
+        fragmentStart: newFrag.start,
+        fragmentAccept: newFrag.accept
+      });
+    }
+  }
+
+  if (stack.length !== 1) {
+    throw new Error('Malformed regular expression: multiple disconnected components remain');
+  }
+
+  const finalFragment = stack.pop();
+  nfa.startState = finalFragment.start;
+  nfa.acceptStates.add(finalFragment.accept);
+  nfa.constructionSteps = steps;
+
+  // Add any explicitly declared alphabet symbols
+  for (const sym of explicitAlphabet) {
+    if (sym !== EPSILON) nfa.alphabet.add(sym);
+  }
+
+  return nfa;
+}
+
+/* --- Module: dfa.js --- */
+/**
+ * Subset Construction Algorithm (Powerset Construction)
+ * Converts an ε-NFA into an equivalent Deterministic Finite Automaton (DFA).
+ */
+
+
+class DFAState {
+  constructor(id, nfaStatesSet, name = null) {
+    this.id = id; // Integer ID (0, 1, 2...)
+    this.name = name || (id < 26 ? String.fromCharCode(65 + id) : `D${id}`); // A, B, C...
+    this.nfaStates = new Set(nfaStatesSet); // Set of NFA state IDs
+    this.transitions = new Map(); // symbol -> target DFAState
+    this.isStart = false;
+    this.isAccept = false;
+  }
+
+  get sortedNFAStates() {
+    return Array.from(this.nfaStates).sort((a, b) => a - b);
+  }
+
+  get key() {
+    return this.sortedNFAStates.join(',');
+  }
+
+  get nfaStatesFormatted() {
+    return `{${this.sortedNFAStates.map(s => `q${s}`).join(', ')}}`;
+  }
+}
+
+class DFA {
+  constructor() {
+    this.states = []; // Array of DFAState
+    this.startState = null; // DFAState
+    this.acceptStates = new Set(); // Set of DFAState
+    this.alphabet = []; // Array of symbols
+    this.subsetSteps = []; // Detailed calculation log for display
+  }
+
+  getStateById(id) {
+    return this.states.find(s => s.id === id);
+  }
+
+  getStateByName(name) {
+    return this.states.find(s => s.name === name);
+  }
+
+  /**
+   * Get all transitions in flat list format: [{ from, fromName, symbol, to, toName }]
+   */
+  getTransitionsList() {
+    const list = [];
+    for (const state of this.states) {
+      for (const [symbol, targetState] of state.transitions.entries()) {
+        list.push({
+          from: state.id,
+          fromName: state.name,
+          symbol,
+          to: targetState.id,
+          toName: targetState.name
+        });
+      }
+    }
+    return list;
+  }
+
+  /**
+   * Generates formatted transition table data for display
+   */
+  getTransitionTable() {
+    const headers = ['DFA State', 'NFA Equivalent Subset', ...this.alphabet];
+    const rows = [];
+
+    for (const state of this.states) {
+      let label = state.name;
+      if (state.isStart && state.isAccept) label = `-> *${state.name}`;
+      else if (state.isStart) label = `-> ${state.name}`;
+      else if (state.isAccept) label = `*${state.name}`;
+
+      const row = {
+        stateId: state.id,
+        name: state.name,
+        label,
+        nfaSubset: state.nfaStatesFormatted,
+        isStart: state.isStart,
+        isAccept: state.isAccept,
+        cells: {}
+      };
+
+      for (const symbol of this.alphabet) {
+        const target = state.transitions.get(symbol);
+        row.cells[symbol] = target ? target.name : '—'; // or trap
+      }
+      rows.push(row);
+    }
+
+    return { headers, rows, alphabet: this.alphabet };
+  }
+}
+
+/**
+ * Computes the ε-closure of a set of NFA states.
+ * That is, the set of all states reachable from any state in `stateSet` using only ε-transitions.
+ */
+function epsilonClosure(nfa, stateSet) {
+  const closure = new Set(stateSet);
+  const stack = Array.from(stateSet);
+
+  while (stack.length > 0) {
+    const currentId = stack.pop();
+    const currentState = nfa.states.get(currentId);
+    if (!currentState) continue;
+
+    const epsTargets = currentState.transitions.get(EPSILON);
+    if (epsTargets) {
+      for (const targetId of epsTargets) {
+        if (!closure.has(targetId)) {
+          closure.add(targetId);
+          stack.push(targetId);
+        }
+      }
+    }
+  }
+
+  return closure;
+}
+
+/**
+ * Computes move(stateSet, symbol) = union of transitions on symbol for all states in stateSet
+ */
+function move(nfa, stateSet, symbol) {
+  const targetSet = new Set();
+  for (const stateId of stateSet) {
+    const state = nfa.states.get(stateId);
+    if (state) {
+      const targets = state.transitions.get(symbol);
+      if (targets) {
+        for (const targetId of targets) {
+          targetSet.add(targetId);
+        }
+      }
+    }
+  }
+  return targetSet;
+}
+
+/**
+ * Converts an ε-NFA to a DFA using the Subset Construction algorithm.
+ */
+function buildDFAFromNFA(nfa, alphabet = null) {
+  const dfa = new DFA();
+  const sortedAlphabet = alphabet
+    ? Array.from(alphabet).sort()
+    : Array.from(nfa.alphabet).sort();
+  dfa.alphabet = sortedAlphabet;
+
+  if (nfa.startState === null) {
+    return dfa;
+  }
+
+  // 1. Initial State: ε-closure of NFA start state
+  const startClosure = epsilonClosure(nfa, [nfa.startState]);
+  const startKey = Array.from(startClosure).sort((a, b) => a - b).join(',');
+
+  const stateMap = new Map(); // key -> DFAState
+  const queue = [];
+
+  const startDFAState = new DFAState(0, startClosure);
+  startDFAState.isStart = true;
+  // Check if initial DFA state contains any NFA accept state
+  for (const s of startClosure) {
+    if (nfa.acceptStates.has(s)) {
+      startDFAState.isAccept = true;
+      break;
+    }
+  }
+
+  dfa.states.push(startDFAState);
+  dfa.startState = startDFAState;
+  if (startDFAState.isAccept) {
+    dfa.acceptStates.add(startDFAState);
+  }
+  stateMap.set(startKey, startDFAState);
+  queue.push(startDFAState);
+
+  let stateCounter = 1;
+
+  // 2. Process worklist queue
+  while (queue.length > 0) {
+    const currentDFAState = queue.shift();
+    const stepRow = {
+      stateName: currentDFAState.name,
+      nfaSubset: currentDFAState.nfaStatesFormatted,
+      isAccept: currentDFAState.isAccept,
+      transitions: {}
+    };
+
+    for (const symbol of sortedAlphabet) {
+      const moveSet = move(nfa, currentDFAState.nfaStates, symbol);
+      const closureSet = epsilonClosure(nfa, moveSet);
+
+      const moveArray = Array.from(moveSet).sort((a, b) => a - b);
+      const closureArray = Array.from(closureSet).sort((a, b) => a - b);
+
+      if (closureArray.length === 0) {
+        stepRow.transitions[symbol] = {
+          move: moveArray.length > 0 ? `{${moveArray.map(s => `q${s}`).join(', ')}}` : '∅',
+          closure: '∅',
+          targetName: '—'
+        };
+        continue;
+      }
+
+      const key = closureArray.join(',');
+      let targetDFAState;
+
+      if (stateMap.has(key)) {
+        targetDFAState = stateMap.get(key);
+      } else {
+        targetDFAState = new DFAState(stateCounter++, closureSet);
+        for (const s of closureSet) {
+          if (nfa.acceptStates.has(s)) {
+            targetDFAState.isAccept = true;
+            break;
+          }
+        }
+        dfa.states.push(targetDFAState);
+        if (targetDFAState.isAccept) {
+          dfa.acceptStates.add(targetDFAState);
+        }
+        stateMap.set(key, targetDFAState);
+        queue.push(targetDFAState);
+      }
+
+      currentDFAState.transitions.set(symbol, targetDFAState);
+
+      stepRow.transitions[symbol] = {
+        move: `{${moveArray.map(s => `q${s}`).join(', ')}}`,
+        closure: `{${closureArray.map(s => `q${s}`).join(', ')}}`,
+        targetName: targetDFAState.name
+      };
+    }
+
+    dfa.subsetSteps.push(stepRow);
+  }
+
+  return dfa;
+}
+
+/* --- Module: minimizer.js --- */
+/**
+ * DFA Minimization (Hopcroft's / Equivalence Partition Refinement Algorithm)
+ * Minimizes a Deterministic Finite Automaton by finding the coarsest equivalence relation.
+ */
+
+class MinimizedDFAState {
+  constructor(id, originalStates, name = null) {
+    this.id = id;
+    this.name = name || `M${id}`;
+    this.originalStates = originalStates; // Array of DFAState
+    this.transitions = new Map(); // symbol -> MinimizedDFAState
+    this.isStart = false;
+    this.isAccept = false;
+  }
+
+  get originalNames() {
+    return this.originalStates.map(s => s.name).sort().join(',');
+  }
+
+  get formattedLabel() {
+    return `{${this.originalNames}}`;
+  }
+}
+
+class MinimizedDFA {
+  constructor() {
+    this.states = [];
+    this.startState = null;
+    this.acceptStates = new Set();
+    this.alphabet = [];
+    this.partitionHistory = []; // Step-by-step partitions
+  }
+
+  getStateById(id) {
+    return this.states.find(s => s.id === id);
+  }
+
+  getStateByName(name) {
+    return this.states.find(s => s.name === name);
+  }
+
+  getTransitionsList() {
+    const list = [];
+    for (const state of this.states) {
+      for (const [symbol, targetState] of state.transitions.entries()) {
+        list.push({
+          from: state.id,
+          fromName: state.name,
+          symbol,
+          to: targetState.id,
+          toName: targetState.name
+        });
+      }
+    }
+    return list;
+  }
+
+  getTransitionTable() {
+    const headers = ['Minimized State', 'Merged Original States', ...this.alphabet];
+    const rows = [];
+
+    for (const state of this.states) {
+      let label = state.name;
+      if (state.isStart && state.isAccept) label = `-> *${state.name}`;
+      else if (state.isStart) label = `-> ${state.name}`;
+      else if (state.isAccept) label = `*${state.name}`;
+
+      const row = {
+        stateId: state.id,
+        name: state.name,
+        label,
+        originalGroup: state.formattedLabel,
+        isStart: state.isStart,
+        isAccept: state.isAccept,
+        cells: {}
+      };
+
+      for (const symbol of this.alphabet) {
+        const target = state.transitions.get(symbol);
+        row.cells[symbol] = target ? target.name : '—';
+      }
+      rows.push(row);
+    }
+
+    return { headers, rows, alphabet: this.alphabet };
+  }
+}
+
+/**
+ * Eliminates unreachable states from the DFA starting from dfa.startState.
+ */
+function getReachableStates(dfa) {
+  if (!dfa.startState) return [];
+  const visited = new Set();
+  const queue = [dfa.startState];
+  visited.add(dfa.startState);
+
+  while (queue.length > 0) {
+    const current = queue.shift();
+    for (const target of current.transitions.values()) {
+      if (target && !visited.has(target)) {
+        visited.add(target);
+        queue.push(target);
+      }
+    }
+  }
+
+  return Array.from(visited);
+}
+
+/**
+ * Minimizes a given DFA using equivalence partitioning.
+ */
+function minimizeDFA(dfa) {
+  const minDFA = new MinimizedDFA();
+  minDFA.alphabet = [...dfa.alphabet];
+
+  if (!dfa.startState || dfa.states.length === 0) {
+    return minDFA;
+  }
+
+  // 1. Filter reachable states only
+  const reachableStates = getReachableStates(dfa);
+
+  // 2. Initial Partition: P0 = [ Non-Accepting States, Accepting States ]
+  const accepting = [];
+  const nonAccepting = [];
+
+  for (const state of reachableStates) {
+    if (state.isAccept) {
+      accepting.push(state);
+    } else {
+      nonAccepting.push(state);
+    }
+  }
+
+  let partition = [];
+  if (nonAccepting.length > 0) partition.push(nonAccepting);
+  if (accepting.length > 0) partition.push(accepting);
+
+  const partitionHistory = [];
+
+  function formatPartition(p) {
+    return p.map(group => `{${group.map(s => s.name).sort().join(', ')}}`);
+  }
+
+  partitionHistory.push({
+    iteration: 0,
+    description: 'Initial partition: P₀ = { Non-Accepting, Accepting }',
+    groups: formatPartition(partition)
+  });
+
+  // Helper: Find which group index in current partition a state belongs to
+  function getGroupIndex(p, state) {
+    if (!state) return -1;
+    for (let i = 0; i < p.length; i++) {
+      if (p[i].some(s => s.id === state.id)) {
+        return i;
+      }
+    }
+    return -1;
+  }
+
+  // 3. Iterative Partition Refinement
+  let iteration = 1;
+  let partitionChanged = true;
+
+  while (partitionChanged) {
+    partitionChanged = false;
+    const newPartition = [];
+
+    for (const group of partition) {
+      if (group.length <= 1) {
+        newPartition.push(group);
+        continue;
+      }
+
+      // Group states by signature: [groupIndex(target(symbol1)), groupIndex(target(symbol2)), ...]
+      const subGroupMap = new Map();
+
+      for (const state of group) {
+        const sigParts = [];
+        for (const symbol of dfa.alphabet) {
+          const target = state.transitions.get(symbol);
+          const targetGroup = getGroupIndex(partition, target);
+          sigParts.push(`${symbol}:${targetGroup}`);
+        }
+        const signature = sigParts.join('|');
+
+        if (!subGroupMap.has(signature)) {
+          subGroupMap.set(signature, []);
+        }
+        subGroupMap.get(signature).push(state);
+      }
+
+      const subGroups = Array.from(subGroupMap.values());
+      if (subGroups.length > 1) {
+        partitionChanged = true;
+      }
+
+      for (const sg of subGroups) {
+        newPartition.push(sg);
+      }
+    }
+
+    partition = newPartition;
+    partitionHistory.push({
+      iteration,
+      description: partitionChanged
+        ? `Iteration ${iteration}: Refined groups based on transition equivalence.`
+        : `Iteration ${iteration}: Stable partition reached (no further splitting).`,
+      groups: formatPartition(partition)
+    });
+
+    iteration++;
+    if (iteration > 100) break; // Safeguard against theoretical edge loops
+  }
+
+  minDFA.partitionHistory = partitionHistory;
+
+  // 4. Construct Minimized DFA from final partition groups
+  // Sort groups so that the group containing the original start state comes first!
+  partition.sort((g1, g2) => {
+    const g1HasStart = g1.some(s => s.id === dfa.startState.id);
+    const g2HasStart = g2.some(s => s.id === dfa.startState.id);
+    if (g1HasStart) return -1;
+    if (g2HasStart) return 1;
+    return 0;
+  });
+
+  const groupToMinState = new Map();
+
+  for (let i = 0; i < partition.length; i++) {
+    const group = partition[i];
+    const name = i < 26 ? `M${i}` : `M_${i}`;
+    const minState = new MinimizedDFAState(i, group, name);
+
+    minState.isStart = group.some(s => s.id === dfa.startState.id);
+    minState.isAccept = group.some(s => s.isAccept);
+
+    if (minState.isStart) minDFA.startState = minState;
+    if (minState.isAccept) minDFA.acceptStates.add(minState);
+
+    minDFA.states.push(minState);
+    for (const originalState of group) {
+      groupToMinState.set(originalState.id, minState);
+    }
+  }
+
+  // 5. Add Transitions to Minimized DFA
+  for (let i = 0; i < partition.length; i++) {
+    const group = partition[i];
+    const minState = minDFA.states[i];
+    const representative = group[0];
+
+    for (const symbol of dfa.alphabet) {
+      const targetOriginal = representative.transitions.get(symbol);
+      if (targetOriginal) {
+        const targetMinState = groupToMinState.get(targetOriginal.id);
+        if (targetMinState) {
+          minState.transitions.set(symbol, targetMinState);
+        }
+      }
+    }
+  }
+
+  return minDFA;
+}
+
+/* --- Module: simulator.js --- */
+/**
+ * Automata Simulator
+ * Validates input strings on DFA, Minimized DFA, or ε-NFA and returns step-by-step traces.
+ */
+
+
+/**
+ * Simulates a string on a DFA (or Minimized DFA).
+ */
+function simulateDFA(dfa, inputString) {
+  const str = inputString === EPSILON ? '' : inputString;
+  const trace = [];
+
+  if (!dfa.startState) {
+    return {
+      accepted: false,
+      trace: [],
+      reason: 'DFA has no initial state'
+    };
+  }
+
+  let currentState = dfa.startState;
+  trace.push({
+    step: 0,
+    char: null,
+    fromState: null,
+    currentState: currentState.name,
+    stateObj: currentState,
+    isAccept: currentState.isAccept,
+    action: `Start at state ${currentState.name}`
+  });
+
+  // Handle empty string
+  if (str === '') {
+    const accepted = currentState.isAccept;
+    return {
+      accepted,
+      trace,
+      finalState: currentState.name,
+      reason: accepted
+        ? 'Accepted: Empty string reached accepting start state.'
+        : 'Rejected: Start state is not an accepting state.'
+    };
+  }
+
+  for (let i = 0; i < str.length; i++) {
+    const char = str[i];
+    const nextState = currentState.transitions.get(char);
+
+    if (!nextState) {
+      trace.push({
+        step: i + 1,
+        char,
+        fromState: currentState.name,
+        currentState: 'TRAP / DEAD',
+        stateObj: null,
+        isAccept: false,
+        action: `No transition from ${currentState.name} on '${char}' -> Trap/Rejected`
+      });
+      return {
+        accepted: false,
+        trace,
+        finalState: 'TRAP',
+        reason: `Rejected: No transition defined for character '${char}' from state ${currentState.name}.`
+      };
+    }
+
+    trace.push({
+      step: i + 1,
+      char,
+      fromState: currentState.name,
+      currentState: nextState.name,
+      stateObj: nextState,
+      isAccept: nextState.isAccept,
+      action: `Read '${char}': ${currentState.name} -> ${nextState.name}`
+    });
+
+    currentState = nextState;
+  }
+
+  const accepted = currentState.isAccept;
+  return {
+    accepted,
+    trace,
+    finalState: currentState.name,
+    reason: accepted
+      ? `Accepted: Finished in accepting state ${currentState.name}.`
+      : `Rejected: Finished in non-accepting state ${currentState.name}.`
+  };
+}
+
+/**
+ * Simulates a string on an ε-NFA directly by tracking active subsets via ε-closure.
+ */
+function simulateNFA(nfa, inputString) {
+  const str = inputString === EPSILON ? '' : inputString;
+  const trace = [];
+
+  if (nfa.startState === null) {
+    return { accepted: false, trace, reason: 'NFA has no start state' };
+  }
+
+  let currentStates = epsilonClosure(nfa, [nfa.startState]);
+  const formatStates = s => `{${Array.from(s).sort((a, b) => a - b).map(x => `q${x}`).join(', ')}}`;
+
+  trace.push({
+    step: 0,
+    char: null,
+    currentStates: formatStates(currentStates),
+    statesSet: new Set(currentStates),
+    action: `Initial state q${nfa.startState} with ε-closure: ${formatStates(currentStates)}`
+  });
+
+  if (str === '') {
+    const hasAccept = Array.from(currentStates).some(s => nfa.acceptStates.has(s));
+    return {
+      accepted: hasAccept,
+      trace,
+      reason: hasAccept
+        ? 'Accepted: ε-closure contains an accepting state.'
+        : 'Rejected: No accepting state reached for empty string.'
+    };
+  }
+
+  for (let i = 0; i < str.length; i++) {
+    const char = str[i];
+    const moveSet = move(nfa, currentStates, char);
+    currentStates = epsilonClosure(nfa, moveSet);
+
+    trace.push({
+      step: i + 1,
+      char,
+      currentStates: formatStates(currentStates),
+      statesSet: new Set(currentStates),
+      action: `Read '${char}': move=${formatStates(moveSet)} -> closure=${formatStates(currentStates)}`
+    });
+
+    if (currentStates.size === 0) {
+      return {
+        accepted: false,
+        trace,
+        reason: `Rejected: Automaton reached empty state set after reading '${char}'.`
+      };
+    }
+  }
+
+  const accepted = Array.from(currentStates).some(s => nfa.acceptStates.has(s));
+  return {
+    accepted,
+    trace,
+    reason: accepted
+      ? `Accepted: Final state set contains accept state.`
+      : `Rejected: Final state set does not contain any accept state.`
+  };
+}
+
+/* --- Module: visualizer.js --- */
+/**
+ * Interactive SVG Automata Visualizer
+ * Renders ε-NFA, DFA, and Minimized DFA with clean draggable states, curved transitions,
+ * pill badges for edge labels, self-loops, double concentric circles for accept states,
+ * start indicators, zoom, pan, and step animation.
+ */
+
+class AutomataVisualizer {
+  constructor(containerElement) {
+    this.container = containerElement;
+    this.svg = null;
+    this.graphGroup = null;
+    this.nodes = [];
+    this.edges = [];
+    this.width = 800;
+    this.height = 500;
+    this.activeStateId = null;
+    this.activeEdgeId = null;
+
+    // Pan & Zoom state
+    this.zoom = 1;
+    this.panX = 0;
+    this.panY = 0;
+    this.isPanning = false;
+    this.startPan = { x: 0, y: 0 };
+
+    this.draggedNode = null;
+    this.onNodeClickCallback = null;
+
+    this.init();
+  }
+
+  init() {
+    if (!this.container) return;
+    this.container.innerHTML = '';
+    this.container.style.position = 'relative';
+    this.container.style.overflow = 'hidden';
+    this.container.style.userSelect = 'none';
+
+    this.svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    this.svg.setAttribute('width', '100%');
+    this.svg.setAttribute('height', '100%');
+    this.svg.style.cursor = 'grab';
+
+    // SVG Defs for arrowheads and glow filters
+    const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
+    defs.innerHTML = `
+      <marker id="arrow" viewBox="0 0 10 10" refX="27" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+        <path d="M 0 1.5 L 10 5 L 0 8.5 z" fill="var(--edge-color, #64748b)" />
+      </marker>
+      <marker id="arrow-active" viewBox="0 0 10 10" refX="27" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M 0 1.5 L 10 5 L 0 8.5 z" fill="var(--primary-color, #3b82f6)" />
+      </marker>
+      <marker id="arrow-start" viewBox="0 0 10 10" refX="27" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+        <path d="M 0 1.5 L 10 5 L 0 8.5 z" fill="var(--accent-color, #10b981)" />
+      </marker>
+      <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+        <feGaussianBlur stdDeviation="3.5" result="blur" />
+        <feComposite in="SourceGraphic" in2="blur" operator="over" />
+      </filter>
+    `;
+    this.svg.appendChild(defs);
+
+    this.graphGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+    this.graphGroup.setAttribute('id', 'graph-group');
+    this.svg.appendChild(this.graphGroup);
+    this.container.appendChild(this.svg);
+
+    this.setupEvents();
+  }
+
+  setupEvents() {
+    if (!this.svg) return;
+
+    // Pan controls
+    this.svg.addEventListener('mousedown', (e) => {
+      if (e.target === this.svg || e.target === this.graphGroup) {
+        this.isPanning = true;
+        this.startPan = { x: e.clientX - this.panX, y: e.clientY - this.panY };
+        this.svg.style.cursor = 'grabbing';
+      }
+    });
+
+    window.addEventListener('mousemove', (e) => {
+      if (this.isPanning) {
+        this.panX = e.clientX - this.startPan.x;
+        this.panY = e.clientY - this.startPan.y;
+        this.updateTransform();
+      } else if (this.draggedNode) {
+        const rect = this.container ? this.container.getBoundingClientRect() : { left: 0, top: 0 };
+        const mouseX = (e.clientX - rect.left - this.panX) / this.zoom;
+        const mouseY = (e.clientY - rect.top - this.panY) / this.zoom;
+
+        this.draggedNode.x = mouseX;
+        this.draggedNode.y = mouseY;
+        this.renderGraph();
+      }
+    });
+
+    window.addEventListener('mouseup', () => {
+      if (this.isPanning) {
+        this.isPanning = false;
+        if (this.svg) this.svg.style.cursor = 'grab';
+      }
+      this.draggedNode = null;
+    });
+
+    // Zoom controls via Wheel
+    this.container.addEventListener('wheel', (e) => {
+      e.preventDefault();
+      const zoomFactor = e.deltaY < 0 ? 1.1 : 0.9;
+      const newZoom = Math.min(Math.max(this.zoom * zoomFactor, 0.25), 3.0);
+
+      const rect = this.container.getBoundingClientRect();
+      const mouseX = e.clientX - rect.left;
+      const mouseY = e.clientY - rect.top;
+
+      this.panX = mouseX - (mouseX - this.panX) * (newZoom / this.zoom);
+      this.panY = mouseY - (mouseY - this.panY) * (newZoom / this.zoom);
+      this.zoom = newZoom;
+
+      this.updateTransform();
+    }, { passive: false });
+  }
+
+  updateTransform() {
+    if (!this.graphGroup) return;
+    this.graphGroup.setAttribute(
+      'transform',
+      `translate(${this.panX}, ${this.panY}) scale(${this.zoom})`
+    );
+  }
+
+  resetZoomPan() {
+    this.zoom = 1;
+    this.panX = 30;
+    this.panY = 20;
+    this.updateTransform();
+  }
+
+  zoomIn() {
+    this.zoom = Math.min(this.zoom * 1.2, 3.0);
+    this.updateTransform();
+  }
+
+  zoomOut() {
+    this.zoom = Math.max(this.zoom / 1.2, 0.25);
+    this.updateTransform();
+  }
+
+  /**
+   * Layout algorithm: Horizontal layered dag layout with vertical centering
+   */
+  computeInitialLayout(nodes, edges) {
+    if (!nodes || nodes.length === 0) return;
+    const rect = this.container ? this.container.getBoundingClientRect() : { width: 800, height: 450 };
+    const width = Math.max(rect.width || 800, 600);
+    const height = Math.max(rect.height || 420, 380);
+
+    const nodeMap = new Map();
+    nodes.forEach(n => nodeMap.set(n.id, n));
+
+    // Calculate depth from start node
+    const depths = new Map();
+    const startNode = nodes.find(n => n.isStart) || nodes[0];
+
+    nodes.forEach(n => depths.set(n.id, 0));
+    if (startNode) {
+      depths.set(startNode.id, 0);
+      const queue = [startNode.id];
+      const visited = new Set([startNode.id]);
+
+      while (queue.length > 0) {
+        const u = queue.shift();
+        const currentD = depths.get(u);
+
+        for (const edge of edges) {
+          if (edge.from === u && !visited.has(edge.to)) {
+            visited.add(edge.to);
+            depths.set(edge.to, currentD + 1);
+            queue.push(edge.to);
+          }
+        }
+      }
+    }
+
+    // Group nodes by depth layers
+    const layers = new Map();
+    nodes.forEach(node => {
+      const d = depths.get(node.id) || 0;
+      if (!layers.has(d)) layers.set(d, []);
+      layers.get(d).push(node);
+    });
+
+    const maxDepth = Math.max(...Array.from(layers.keys()), 0);
+    const layerSpacingX = Math.min(180, Math.max(130, (width - 180) / (maxDepth + 1 || 1)));
+
+    layers.forEach((layerNodes, d) => {
+      const count = layerNodes.length;
+      const layerHeight = count * 95;
+      const startY = height / 2 - layerHeight / 2 + 45;
+
+      layerNodes.forEach((node, idx) => {
+        node.x = 95 + d * layerSpacingX;
+        node.y = startY + idx * 95;
+      });
+    });
+
+    this.zoom = 1;
+    this.panX = 25;
+    this.panY = 15;
+    this.updateTransform();
+  }
+
+  loadAutomaton(nodesData, transitionsData) {
+    if (!nodesData) return;
+    this.nodes = nodesData.map(n => ({
+      ...n,
+      x: 0,
+      y: 0,
+      radius: 24 // Increased radius for clear text display
+    }));
+
+    // Group multiple transitions between same pair
+    const edgeMap = new Map();
+    for (const t of (transitionsData || [])) {
+      const key = `${t.from}->${t.to}`;
+      if (!edgeMap.has(key)) {
+        edgeMap.set(key, { from: t.from, to: t.to, symbols: [] });
+      }
+      edgeMap.get(key).symbols.push(t.symbol);
+    }
+
+    this.edges = Array.from(edgeMap.values()).map(e => ({
+      from: e.from,
+      to: e.to,
+      label: e.symbols.join(', '),
+      isSelfLoop: e.from === e.to
+    }));
+
+    this.computeInitialLayout(this.nodes, this.edges);
+    this.renderGraph();
+  }
+
+  renderGraph() {
+    if (!this.graphGroup) return;
+    this.graphGroup.innerHTML = '';
+    const nodeMap = new Map();
+    this.nodes.forEach(n => nodeMap.set(n.id, n));
+
+    // Render Edges
+    const edgesGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+    edgesGroup.setAttribute('class', 'edges-layer');
+
+    for (const edge of this.edges) {
+      const source = nodeMap.get(edge.from);
+      const target = nodeMap.get(edge.to);
+      if (!source || !target) continue;
+
+      const edgeEl = this.createEdgeElement(source, target, edge);
+      edgesGroup.appendChild(edgeEl);
+    }
+    this.graphGroup.appendChild(edgesGroup);
+
+    // Render Nodes
+    const nodesGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+    nodesGroup.setAttribute('class', 'nodes-layer');
+
+    for (const node of this.nodes) {
+      const nodeEl = this.createNodeElement(node);
+      nodesGroup.appendChild(nodeEl);
+    }
+    this.graphGroup.appendChild(nodesGroup);
+  }
+
+  createEdgeElement(source, target, edge) {
+    const group = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+    group.setAttribute('class', 'graph-edge');
+    const isEdgeActive = this.activeEdgeId === `${edge.from}->${edge.to}`;
+
+    if (edge.isSelfLoop) {
+      // Self loop cleanly placed on top of node
+      const r = source.radius;
+      const x = source.x;
+      const y = source.y - r;
+
+      const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      const d = `M ${x - 9} ${y} C ${x - 30} ${y - 42}, ${x + 30} ${y - 42}, ${x + 9} ${y}`;
+      path.setAttribute('d', d);
+      path.setAttribute('fill', 'none');
+      path.setAttribute('stroke', isEdgeActive ? 'var(--primary-color, #3b82f6)' : 'var(--edge-color, #64748b)');
+      path.setAttribute('stroke-width', isEdgeActive ? '2.5' : '1.8');
+      path.setAttribute('marker-end', isEdgeActive ? 'url(#arrow-active)' : 'url(#arrow)');
+      group.appendChild(path);
+
+      // Edge Pill Background Badge
+      const labelY = y - 44;
+      const labelWidth = Math.max(22, edge.label.length * 8 + 14);
+      const labelHeight = 18;
+
+      const bgRect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+      bgRect.setAttribute('x', x - labelWidth / 2);
+      bgRect.setAttribute('y', labelY - labelHeight / 2);
+      bgRect.setAttribute('width', labelWidth);
+      bgRect.setAttribute('height', labelHeight);
+      bgRect.setAttribute('rx', '4');
+      bgRect.setAttribute('fill', 'var(--bg-secondary, #1e293b)');
+      bgRect.setAttribute('stroke', isEdgeActive ? 'var(--primary-color, #3b82f6)' : 'var(--border-color, #475569)');
+      bgRect.setAttribute('stroke-width', '1');
+      group.appendChild(bgRect);
+
+      const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+      text.setAttribute('x', x);
+      text.setAttribute('y', labelY + 4);
+      text.setAttribute('text-anchor', 'middle');
+      text.setAttribute('fill', isEdgeActive ? 'var(--primary-color, #3b82f6)' : 'var(--text-main, #f8fafc)');
+      text.setAttribute('font-size', '11px');
+      text.setAttribute('font-family', 'var(--font-mono)');
+      text.setAttribute('font-weight', '700');
+      text.textContent = edge.label;
+      group.appendChild(text);
+
+      return group;
+    }
+
+    const hasReverse = this.edges.some(e => e.from === edge.to && e.to === edge.from);
+    const dx = target.x - source.x;
+    const dy = target.y - source.y;
+    const dist = Math.sqrt(dx * dx + dy * dy);
+
+    if (dist === 0) return group;
+
+    const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    let labelX, labelY;
+
+    if (hasReverse) {
+      // Curved outward to cleanly separate bidirectional transitions
+      const curveOffset = 26;
+      const midX = (source.x + target.x) / 2;
+      const midY = (source.y + target.y) / 2;
+
+      const nx = -dy / dist;
+      const ny = dx / dist;
+
+      const ctrlX = midX + nx * curveOffset;
+      const ctrlY = midY + ny * curveOffset;
+
+      path.setAttribute('d', `M ${source.x} ${source.y} Q ${ctrlX} ${ctrlY} ${target.x} ${target.y}`);
+      labelX = ctrlX + nx * 4;
+      labelY = ctrlY + ny * 4;
+    } else if (dx < 0 && Math.abs(dy) < 50) {
+      // Backward transition: arch gracefully under the states
+      const curveOffset = 38;
+      const midX = (source.x + target.x) / 2;
+      const midY = (source.y + target.y) / 2 + curveOffset;
+
+      path.setAttribute('d', `M ${source.x} ${source.y} Q ${midX} ${midY} ${target.x} ${target.y}`);
+      labelX = midX;
+      labelY = midY + 4;
+    } else if (dx > 200 && Math.abs(dy) < 50) {
+      // Long forward transition skipping states: arch smoothly over the states
+      const curveOffset = -38;
+      const midX = (source.x + target.x) / 2;
+      const midY = (source.y + target.y) / 2 + curveOffset;
+
+      path.setAttribute('d', `M ${source.x} ${source.y} Q ${midX} ${midY} ${target.x} ${target.y}`);
+      labelX = midX;
+      labelY = midY - 4;
+    } else {
+      // Clean straight transition
+      path.setAttribute('d', `M ${source.x} ${source.y} L ${target.x} ${target.y}`);
+      labelX = (source.x + target.x) / 2 - (dy / dist) * 12;
+      labelY = (source.y + target.y) / 2 + (dx / dist) * 12;
+    }
+
+    path.setAttribute('fill', 'none');
+    path.setAttribute('stroke', isEdgeActive ? 'var(--primary-color, #3b82f6)' : 'var(--edge-color, #64748b)');
+    path.setAttribute('stroke-width', isEdgeActive ? '2.5' : '1.8');
+    path.setAttribute('marker-end', isEdgeActive ? 'url(#arrow-active)' : 'url(#arrow)');
+    group.appendChild(path);
+
+    // Pill Badge for transition label
+    const labelWidth = Math.max(22, edge.label.length * 8 + 14);
+    const labelHeight = 18;
+
+    const bgRect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+    bgRect.setAttribute('x', labelX - labelWidth / 2);
+    bgRect.setAttribute('y', labelY - labelHeight / 2);
+    bgRect.setAttribute('width', labelWidth);
+    bgRect.setAttribute('height', labelHeight);
+    bgRect.setAttribute('rx', '4');
+    bgRect.setAttribute('fill', 'var(--bg-secondary, #1e293b)');
+    bgRect.setAttribute('stroke', isEdgeActive ? 'var(--primary-color, #3b82f6)' : 'var(--border-color, #475569)');
+    bgRect.setAttribute('stroke-width', '1');
+    group.appendChild(bgRect);
+
+    const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+    text.setAttribute('x', labelX);
+    text.setAttribute('y', labelY + 4);
+    text.setAttribute('text-anchor', 'middle');
+    text.setAttribute('fill', isEdgeActive ? 'var(--primary-color, #3b82f6)' : 'var(--text-main, #f8fafc)');
+    text.setAttribute('font-size', '11px');
+    text.setAttribute('font-family', 'var(--font-mono)');
+    text.setAttribute('font-weight', '700');
+    text.textContent = edge.label;
+    group.appendChild(text);
+
+    return group;
+  }
+
+  createNodeElement(node) {
+    const group = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+    group.setAttribute('class', 'graph-node');
+    group.style.cursor = 'grab';
+
+    const isCurrentActive = this.activeStateId === node.id || this.activeStateId === node.name;
+
+    // Start State Arrow & Pill Badge
+    if (node.isStart) {
+      const arrowStartX = node.x - node.radius - 34;
+      const arrowEndX = node.x - node.radius;
+
+      const startArrow = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      startArrow.setAttribute('d', `M ${arrowStartX} ${node.y} L ${arrowEndX} ${node.y}`);
+      startArrow.setAttribute('stroke', 'var(--accent-color, #10b981)');
+      startArrow.setAttribute('stroke-width', '2.5');
+      startArrow.setAttribute('marker-end', 'url(#arrow-start)');
+      group.appendChild(startArrow);
+
+      // Start Tag Pill
+      const tagWidth = 38;
+      const tagHeight = 16;
+      const tagRect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+      tagRect.setAttribute('x', arrowStartX - tagWidth);
+      tagRect.setAttribute('y', node.y - tagHeight / 2);
+      tagRect.setAttribute('width', tagWidth);
+      tagRect.setAttribute('height', tagHeight);
+      tagRect.setAttribute('rx', '3');
+      tagRect.setAttribute('fill', 'rgba(16, 185, 129, 0.15)');
+      tagRect.setAttribute('stroke', 'var(--accent-color, #10b981)');
+      tagRect.setAttribute('stroke-width', '1');
+      group.appendChild(tagRect);
+
+      const startText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+      startText.setAttribute('x', arrowStartX - tagWidth / 2);
+      startText.setAttribute('y', node.y + 3.5);
+      startText.setAttribute('text-anchor', 'middle');
+      startText.setAttribute('fill', 'var(--accent-color, #10b981)');
+      startText.setAttribute('font-size', '9px');
+      startText.setAttribute('font-weight', '800');
+      startText.setAttribute('letter-spacing', '0.05em');
+      startText.textContent = 'START';
+      group.appendChild(startText);
+    }
+
+    // Outer circle
+    const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+    circle.setAttribute('cx', node.x);
+    circle.setAttribute('cy', node.y);
+    circle.setAttribute('r', node.radius);
+    circle.setAttribute('fill', isCurrentActive ? 'var(--state-active-bg, #1e3a8a)' : 'var(--state-bg, #1e293b)');
+    circle.setAttribute('stroke', isCurrentActive ? 'var(--primary-color, #3b82f6)' : 'var(--state-border, #94a3b8)');
+    circle.setAttribute('stroke-width', isCurrentActive ? '3' : '2');
+    if (isCurrentActive) {
+      circle.setAttribute('filter', 'url(#glow)');
+    }
+    group.appendChild(circle);
+
+    // Double circle for Final / Accept States
+    if (node.isAccept) {
+      const innerCircle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+      innerCircle.setAttribute('cx', node.x);
+      innerCircle.setAttribute('cy', node.y);
+      innerCircle.setAttribute('r', node.radius - 4.5);
+      innerCircle.setAttribute('fill', 'none');
+      innerCircle.setAttribute('stroke', isCurrentActive ? 'var(--primary-color, #3b82f6)' : 'var(--warning-color, #f59e0b)');
+      innerCircle.setAttribute('stroke-width', '1.6');
+      group.appendChild(innerCircle);
+    }
+
+    // State Label
+    const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+    text.setAttribute('x', node.x);
+    text.setAttribute('y', node.y + 4.5);
+    text.setAttribute('text-anchor', 'middle');
+    text.setAttribute('fill', 'var(--text-main, #f8fafc)');
+    text.setAttribute('font-size', '13px');
+    text.setAttribute('font-family', 'var(--font-mono)');
+    text.setAttribute('font-weight', '700');
+    text.textContent = node.name || `q${node.id}`;
+    group.appendChild(text);
+
+    // Node drag listeners
+    group.addEventListener('mousedown', (e) => {
+      e.stopPropagation();
+      this.draggedNode = node;
+      group.style.cursor = 'grabbing';
+      if (this.onNodeClickCallback) {
+        this.onNodeClickCallback(node);
+      }
+    });
+
+    return group;
+  }
+
+  highlightState(stateId, fromStateId = null) {
+    this.activeStateId = stateId;
+    if (fromStateId !== null && stateId !== null) {
+      this.activeEdgeId = `${fromStateId}->${stateId}`;
+    } else {
+      this.activeEdgeId = null;
+    }
+    this.renderGraph();
+  }
+
+  clearHighlight() {
+    this.activeStateId = null;
+    this.activeEdgeId = null;
+    this.renderGraph();
+  }
+
+  onNodeClick(callback) {
+    this.onNodeClickCallback = callback;
+  }
+
+  exportSVG() {
+    if (!this.svg) return;
+    const serializer = new XMLSerializer();
+    const source = serializer.serializeToString(this.svg);
+    const blob = new Blob([source], { type: 'image/svg+xml;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const downloadLink = document.createElement('a');
+    downloadLink.href = url;
+    downloadLink.download = 'automaton_graph.svg';
+    document.body.appendChild(downloadLink);
+    downloadLink.click();
+    document.body.removeChild(downloadLink);
+  }
+}
+
+/* --- Module: app.js --- */
+/**
+ * Application Main Controller
+ * Coordinates parsing, automata generation, interactive visualization,
+ * string simulation, table rendering, view toggles, and user interactions.
+ */
+
+
+class TOCApp {
+  constructor() {
+    this.currentData = {
+      parsed: null,
+      nfa: null,
+      dfa: null,
+      minDFA: null
+    };
+
+    this.visualizers = {
+      minDFA: null,
+      dfa: null,
+      nfa: null
+    };
+
+    this.activeTab = 'tab-min-dfa';
+    this.simTrace = null;
+    this.simStepIndex = 0;
+
+    this.initVisualizers();
+    this.bindEvents();
+    this.runConversion();
+  }
+
+  el(id) {
+    return document.getElementById(id);
+  }
+
+  setText(id, text) {
+    const element = this.el(id);
+    if (element) {
+      element.textContent = text;
+    }
+  }
+
+  initVisualizers() {
+    const minContainer = this.el('graph-container-min-dfa');
+    const dfaContainer = this.el('graph-container-dfa');
+    const nfaContainer = this.el('graph-container-nfa');
+
+    if (minContainer) this.visualizers.minDFA = new AutomataVisualizer(minContainer);
+    if (dfaContainer) this.visualizers.dfa = new AutomataVisualizer(dfaContainer);
+    if (nfaContainer) this.visualizers.nfa = new AutomataVisualizer(nfaContainer);
+  }
+
+  bindEvents() {
+    // Theme toggle
+    const themeBtn = this.el('theme-toggle-btn');
+    if (themeBtn) {
+      themeBtn.addEventListener('click', () => {
+        const currentTheme = document.documentElement.getAttribute('data-theme') || 'dark';
+        const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+        document.documentElement.setAttribute('data-theme', newTheme);
+        try {
+          localStorage.setItem('toc-theme', newTheme);
+        } catch (_) {}
+        this.refreshCurrentVisualizer();
+      });
+      try {
+        const savedTheme = localStorage.getItem('toc-theme');
+        if (savedTheme) {
+          document.documentElement.setAttribute('data-theme', savedTheme);
+        }
+      } catch (_) {}
+    }
+
+    // Convert button
+    this.el('convert-btn')?.addEventListener('click', () => this.runConversion());
+
+    // Enter key in regex input
+    const regexInput = this.el('regex-input');
+    if (regexInput) {
+      regexInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') this.runConversion();
+      });
+    }
+
+    // Presets dropdown
+    const presetSelect = this.el('preset-select');
+    if (presetSelect) {
+      presetSelect.addEventListener('change', (e) => {
+        if (e.target.value && regexInput) {
+          regexInput.value = e.target.value;
+          this.setSuggestedString(e.target.value);
+          this.runConversion();
+        }
+      });
+    }
+
+    // Operator buttons
+    document.querySelectorAll('.op-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const symbol = btn.getAttribute('data-insert');
+        if (symbol) this.insertSymbolAtCursor(symbol);
+      });
+    });
+
+    // Tab switching
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const tabId = btn.getAttribute('data-tab');
+        if (tabId) this.switchTab(tabId);
+      });
+    });
+
+    // View Mode buttons (Split / Diagram Only / Table Only)
+    document.querySelectorAll('.view-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const targetId = btn.getAttribute('data-target');
+        const mode = btn.getAttribute('data-mode');
+        const section = this.el(targetId);
+        if (!section) return;
+
+        section.classList.remove('mode-diagram-only', 'mode-table-only');
+        if (mode === 'diagram') section.classList.add('mode-diagram-only');
+        else if (mode === 'table') section.classList.add('mode-table-only');
+
+        // Toggle active button in group
+        const group = btn.closest('.view-mode-bar');
+        if (group) {
+          group.querySelectorAll('.view-btn').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+        }
+
+        // Refresh graph layout
+        setTimeout(() => this.refreshCurrentVisualizer(), 50);
+      });
+    });
+
+    // Zoom buttons
+    this.el('zoom-in-min')?.addEventListener('click', () => this.visualizers.minDFA?.zoomIn());
+    this.el('zoom-out-min')?.addEventListener('click', () => this.visualizers.minDFA?.zoomOut());
+    this.el('zoom-reset-min')?.addEventListener('click', () => this.visualizers.minDFA?.resetZoomPan());
+
+    this.el('zoom-in-dfa')?.addEventListener('click', () => this.visualizers.dfa?.zoomIn());
+    this.el('zoom-out-dfa')?.addEventListener('click', () => this.visualizers.dfa?.zoomOut());
+    this.el('zoom-reset-dfa')?.addEventListener('click', () => this.visualizers.dfa?.resetZoomPan());
+
+    this.el('zoom-in-nfa')?.addEventListener('click', () => this.visualizers.nfa?.zoomIn());
+    this.el('zoom-out-nfa')?.addEventListener('click', () => this.visualizers.nfa?.zoomOut());
+    this.el('zoom-reset-nfa')?.addEventListener('click', () => this.visualizers.nfa?.resetZoomPan());
+
+    // Simulator buttons
+    this.el('sim-test-btn')?.addEventListener('click', () => this.runSingleSimulation());
+    this.el('sim-step-btn')?.addEventListener('click', () => this.startStepSimulation());
+    this.el('sim-reset-btn')?.addEventListener('click', () => this.resetSimulation());
+
+    // Batch Tester
+    this.el('batch-run-btn')?.addEventListener('click', () => this.runBatchTests());
+
+    // Mobile QR Modal
+    const mobileBtn = this.el('mobile-qr-btn');
+    const mobileModal = this.el('mobile-modal');
+    const closeModalBtn = this.el('close-modal-btn');
+    const copyMobileBtn = this.el('copy-mobile-url-btn');
+
+    if (mobileBtn && mobileModal) {
+      mobileBtn.addEventListener('click', async () => {
+        try {
+          const res = await fetch('/api/ip');
+          if (res.ok) {
+            const data = await res.json();
+            const host = data.ip || window.location.hostname;
+            const port = data.port || window.location.port || '5000';
+            const protocol = window.location.protocol === 'https:' ? 'https:' : 'http:';
+            const url = `${protocol}//${host}${port ? `:${port}` : ''}`;
+            const input = this.el('mobile-url-input');
+            const img = this.el('mobile-qr-img');
+            if (input) input.value = url;
+            if (img) img.src = `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(url)}`;
+          }
+        } catch (_) {
+          // Static hosting or API failure: use the current page URL as a safe fallback.
+          const input = this.el('mobile-url-input');
+          const img = this.el('mobile-qr-img');
+          const url = window.location.origin;
+          if (input) input.value = url;
+          if (img) img.src = `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(url)}`;
+        }
+        mobileModal.style.display = 'flex';
+      });
+
+      closeModalBtn?.addEventListener('click', () => {
+        mobileModal.style.display = 'none';
+      });
+
+      mobileModal.addEventListener('click', (e) => {
+        if (e.target === mobileModal) mobileModal.style.display = 'none';
+      });
+
+      copyMobileBtn?.addEventListener('click', () => {
+        const input = this.el('mobile-url-input');
+        if (input && navigator.clipboard) {
+          navigator.clipboard.writeText(input.value).then(() => {
+            alert('Mobile link copied to clipboard!');
+          }).catch(() => prompt('Copy mobile link below:', input.value));
+        } else if (input) {
+          prompt('Copy mobile link below:', input.value);
+        }
+      });
+    }
+
+    // Exports
+    this.el('export-svg-btn')?.addEventListener('click', () => this.exportCurrentSVG());
+    this.el('export-latex-btn')?.addEventListener('click', () => this.exportLaTeX());
+    this.el('export-markdown-btn')?.addEventListener('click', () => this.exportMarkdown());
+
+    // Table Copy Buttons
+    document.querySelectorAll('.copy-min-table-btn').forEach(b => b.addEventListener('click', () => this.copySpecificTable('min')));
+    document.querySelectorAll('.copy-dfa-table-btn').forEach(b => b.addEventListener('click', () => this.copySpecificTable('dfa')));
+    document.querySelectorAll('.copy-nfa-table-btn').forEach(b => b.addEventListener('click', () => this.copySpecificTable('nfa')));
+  }
+
+  insertSymbolAtCursor(symbol) {
+    const input = this.el('regex-input');
+    if (!input) return;
+    const start = input.selectionStart || 0;
+    const end = input.selectionEnd || 0;
+    const val = input.value || '';
+    input.value = val.substring(0, start) + symbol + val.substring(end);
+    input.focus();
+    input.setSelectionRange(start + symbol.length, start + symbol.length);
+  }
+
+  setSuggestedString(regex) {
+    const simInput = this.el('test-string-input');
+    if (!simInput) return;
+    if (regex.includes('abb')) simInput.value = 'abb';
+    else if (regex.includes('00')) simInput.value = '1001';
+    else if (regex.includes('11')) simInput.value = '0011';
+    else if (regex.startsWith('a(')) simInput.value = 'ad';
+    else simInput.value = 'a';
+  }
+
+  switchTab(tabId) {
+    this.activeTab = tabId;
+
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+      btn.classList.toggle('active', btn.getAttribute('data-tab') === tabId);
+    });
+
+    document.querySelectorAll('.tab-content').forEach(section => {
+      section.classList.toggle('active', section.id === tabId);
+    });
+
+    setTimeout(() => {
+      this.refreshCurrentVisualizer();
+    }, 50);
+  }
+
+  refreshCurrentVisualizer() {
+    if (this.activeTab === 'tab-min-dfa' && this.visualizers.minDFA) {
+      this.visualizers.minDFA.renderGraph();
+    } else if (this.activeTab === 'tab-dfa' && this.visualizers.dfa) {
+      this.visualizers.dfa.renderGraph();
+    } else if (this.activeTab === 'tab-nfa' && this.visualizers.nfa) {
+      this.visualizers.nfa.renderGraph();
+    }
+  }
+
+  runConversion() {
+    const regexInput = this.el('regex-input');
+    const rawRegex = regexInput ? regexInput.value.trim() : '(a|b)*abb';
+    const unionCheck = this.el('plus-union-check');
+    const unionPlus = unionCheck ? unionCheck.checked : false;
+
+    if (!rawRegex) {
+      alert('Please enter a regular expression!');
+      return;
+    }
+
+    try {
+      // 1. Parsing & Postfix
+      const parsed = parseRegex(rawRegex, { unionPlus });
+      this.currentData.parsed = parsed;
+
+      // 2. Thompson's ε-NFA
+      const nfa = buildNFAFromPostfix(parsed.tokens, parsed.alphabet);
+      this.currentData.nfa = nfa;
+
+      // 3. Subset Construction DFA
+      const dfa = buildDFAFromNFA(nfa, parsed.alphabet);
+      this.currentData.dfa = dfa;
+
+      // 4. Hopcroft Minimization
+      const minDFA = minimizeDFA(dfa);
+      this.currentData.minDFA = minDFA;
+
+      // Update UI
+      this.updateStats();
+      this.renderVisualizers();
+      this.renderTransitionTables();
+      this.renderStepByStepLogs();
+      this.resetSimulation();
+
+    } catch (err) {
+      alert(`Error processing regular expression:\n${err.message}`);
+      console.error(err);
+    }
+  }
+
+  updateStats() {
+    const { parsed, nfa, dfa, minDFA } = this.currentData;
+    if (!parsed || !nfa || !dfa || !minDFA) return;
+
+    this.setText('alphabet-badge', `Σ = { ${parsed.alphabet.join(', ')} }`);
+    this.setText('stat-nfa-states', nfa.states.size);
+    this.setText('stat-dfa-states', dfa.states.length);
+    this.setText('stat-min-states', minDFA.states.length);
+
+    this.setText('badge-min-dfa', `${minDFA.states.length} States`);
+    this.setText('badge-dfa', `${dfa.states.length} States`);
+    this.setText('badge-nfa', `${nfa.states.size} States`);
+
+    const minAccept = Array.from(minDFA.acceptStates).map(s => s.name).join(', ') || 'none';
+    this.setText(
+      'min-dfa-status-text',
+      `States: ${minDFA.states.length} | Start: ${minDFA.startState?.name || '—'} | Accept: { ${minAccept} }`
+    );
+
+    const dfaAccept = Array.from(dfa.acceptStates).map(s => s.name).join(', ') || 'none';
+    this.setText(
+      'dfa-status-text',
+      `States: ${dfa.states.length} | Start: ${dfa.startState?.name || '—'} | Accept: { ${dfaAccept} }`
+    );
+
+    const nfaAccept = Array.from(nfa.acceptStates).map(s => `q${s}`).join(', ') || 'none';
+    this.setText(
+      'nfa-status-text',
+      `States: ${nfa.states.size} | Start: q${nfa.startState} | Accept: { ${nfaAccept} }`
+    );
+  }
+
+  renderVisualizers() {
+    const { nfa, dfa, minDFA } = this.currentData;
+    if (!nfa || !dfa || !minDFA) return;
+
+    // 1. Minimized DFA
+    if (this.visualizers.minDFA) {
+      const nodes = minDFA.states.map(s => ({
+        id: s.id,
+        name: s.name,
+        isStart: s.isStart,
+        isAccept: s.isAccept
+      }));
+      const transitions = minDFA.getTransitionsList();
+      this.visualizers.minDFA.loadAutomaton(nodes, transitions);
+    }
+
+    // 2. DFA
+    if (this.visualizers.dfa) {
+      const nodes = dfa.states.map(s => ({
+        id: s.id,
+        name: s.name,
+        isStart: s.isStart,
+        isAccept: s.isAccept
+      }));
+      const transitions = dfa.getTransitionsList();
+      this.visualizers.dfa.loadAutomaton(nodes, transitions);
+    }
+
+    // 3. ε-NFA
+    if (this.visualizers.nfa) {
+      const nodes = Array.from(nfa.states.keys()).map(id => ({
+        id,
+        name: `q${id}`,
+        isStart: id === nfa.startState,
+        isAccept: nfa.acceptStates.has(id)
+      }));
+      const transitions = nfa.getTransitionsList();
+      this.visualizers.nfa.loadAutomaton(nodes, transitions);
+    }
+  }
+
+  renderTransitionTables() {
+    const { nfa, dfa, minDFA, parsed } = this.currentData;
+    if (!nfa || !dfa || !minDFA || !parsed) return;
+
+    // Minimized DFA Table
+    const minTableData = minDFA.getTransitionTable();
+    this.renderGenericTable(
+      this.el('min-dfa-table-container'),
+      minTableData.headers,
+      minTableData.rows,
+      parsed.alphabet,
+      'min'
+    );
+    this.renderGenericTable(
+      this.el('compare-min-table-container'),
+      minTableData.headers,
+      minTableData.rows,
+      parsed.alphabet,
+      'compare-min'
+    );
+
+    // DFA Table
+    const dfaTableData = dfa.getTransitionTable();
+    this.renderGenericTable(
+      this.el('dfa-table-container'),
+      dfaTableData.headers,
+      dfaTableData.rows,
+      parsed.alphabet,
+      'dfa'
+    );
+    this.renderGenericTable(
+      this.el('compare-dfa-table-container'),
+      dfaTableData.headers,
+      dfaTableData.rows,
+      parsed.alphabet,
+      'compare-dfa'
+    );
+
+    // ε-NFA Table
+    const nfaTableData = nfa.getTransitionTable(parsed.alphabet);
+    this.renderGenericTable(
+      this.el('nfa-table-container'),
+      nfaTableData.headers,
+      nfaTableData.rows,
+      [...parsed.alphabet, EPSILON],
+      'nfa'
+    );
+    this.renderGenericTable(
+      this.el('compare-nfa-table-container'),
+      nfaTableData.headers,
+      nfaTableData.rows,
+      [...parsed.alphabet, EPSILON],
+      'compare-nfa'
+    );
+  }
+
+  renderGenericTable(container, headers, rows, alphabet, type) {
+    if (!container || !headers || !rows) return;
+
+    let html = `<div class="table-wrapper"><table class="data-table" id="table-${type}"><thead><tr>`;
+    for (const h of headers) {
+      html += `<th>${h}</th>`;
+    }
+    html += `</tr></thead><tbody>`;
+
+    for (const row of rows) {
+      html += `<tr data-state="${row.name || row.stateId}">`;
+
+      // Clean state column with badges
+      let badgeHtml = '';
+      if (row.isStart && row.isAccept) {
+        badgeHtml = `<span class="badge-both">▶ START ★ FINAL</span>`;
+      } else if (row.isStart) {
+        badgeHtml = `<span class="badge-start">▶ START</span>`;
+      } else if (row.isAccept) {
+        badgeHtml = `<span class="badge-accept">★ FINAL</span>`;
+      } else {
+        badgeHtml = `<span class="badge-normal"></span>`;
+      }
+
+      const stateName = row.name || `q${row.stateId}`;
+      html += `<td>
+        <div class="state-cell-container">
+          ${badgeHtml}
+          <span class="state-pill state-pill-main">${stateName}</span>
+        </div>
+      </td>`;
+
+      if (row.originalGroup) {
+        html += `<td><span class="subset-badge">${row.originalGroup}</span></td>`;
+      }
+      if (row.nfaSubset) {
+        html += `<td><span class="subset-badge">${row.nfaSubset}</span></td>`;
+      }
+
+      // Transition columns
+      for (const symbol of alphabet) {
+        const val = row.cells ? row.cells[symbol] : '—';
+        if (!val || val === '—' || val === '∅') {
+          html += `<td style="text-align: center;"><span class="empty-symbol">∅</span></td>`;
+        } else if (val.startsWith('{')) {
+          // Multiple states in NFA: e.g. {q1, q2}
+          const inner = val.replace(/[{}]/g, '').split(',').map(s => s.trim()).filter(Boolean);
+          const pills = inner.map(s => `<span class="state-pill">${s}</span>`).join(' ');
+          html += `<td style="text-align: center;">{ ${pills} }</td>`;
+        } else {
+          html += `<td style="text-align: center;"><span class="state-pill">${val}</span></td>`;
+        }
+      }
+      html += `</tr>`;
+    }
+
+    html += `</tbody></table></div>`;
+    container.innerHTML = html;
+  }
+
+  renderStepByStepLogs() {
+    const { parsed, dfa, minDFA } = this.currentData;
+    if (!parsed || !dfa || !minDFA) return;
+
+    // Stage 1: Postfix
+    this.setText('step-raw-regex', parsed.raw);
+    this.setText('step-concat-regex', parsed.withConcat);
+    this.setText('step-postfix-regex', parsed.postfix);
+
+    // Stage 2: Subset Construction Table
+    const subsetContainer = this.el('steps-subset-table-container');
+    if (subsetContainer && dfa.subsetSteps) {
+      let html = `<table class="data-table"><thead><tr>
+        <th>DFA State</th>
+        <th>NFA Subset</th>
+        <th>Is Final?</th>`;
+
+      for (const sym of parsed.alphabet) {
+        html += `<th style="text-align: center;">move(S, '${sym}')</th><th style="text-align: center;">ε-closure → Next</th>`;
+      }
+      html += `</tr></thead><tbody>`;
+
+      for (const step of dfa.subsetSteps) {
+        html += `<tr>
+          <td><span class="state-pill state-pill-main">${step.stateName}</span></td>
+          <td><span class="subset-badge">${step.nfaSubset}</span></td>
+          <td>${step.isAccept ? '<span class="badge-accept">★ Yes</span>' : '<span style="color: var(--text-muted);">No</span>'}</td>`;
+
+        for (const sym of parsed.alphabet) {
+          const t = step.transitions ? step.transitions[sym] : null;
+          if (t && t.targetName !== '—') {
+            html += `<td style="text-align: center;"><span class="subset-badge">${t.move}</span></td>
+                     <td style="text-align: center;"><strong><span class="state-pill">${t.targetName}</span></strong> <span class="subset-badge">${t.closure}</span></td>`;
+          } else {
+            html += `<td style="text-align: center;"><span class="empty-symbol">∅</span></td><td style="text-align: center;"><span class="empty-symbol">∅</span></td>`;
+          }
+        }
+        html += `</tr>`;
+      }
+      html += `</tbody></table>`;
+      subsetContainer.innerHTML = html;
+    }
+
+    // Stage 3: Hopcroft Minimization Partition Log
+    const minStepsContainer = this.el('steps-minimization-container');
+    if (minStepsContainer && minDFA.partitionHistory) {
+      let html = '';
+      for (const h of minDFA.partitionHistory) {
+        html += `
+          <div style="background-color: var(--bg-secondary); padding: 10px 14px; border-radius: var(--radius-sm); border: 1px solid var(--border-color); font-family: var(--font-mono);">
+            <div style="color: var(--primary-color); font-weight: bold; margin-bottom: 4px; font-size: 0.85rem;">
+              ${h.description}
+            </div>
+            <div style="font-size: 0.95rem; color: var(--text-main);">
+              <strong>P = [ ${h.groups.join(', ')} ]</strong>
+            </div>
+          </div>
+        `;
+      }
+      minStepsContainer.innerHTML = html;
+    }
+  }
+
+  /**
+   * String Simulator
+   */
+  runSingleSimulation() {
+    const input = this.el('test-string-input');
+    const str = input ? input.value.trim() : '';
+    const { minDFA } = this.currentData;
+    if (!minDFA) return;
+
+    const result = simulateDFA(minDFA, str);
+    this.displayVerdict(result);
+
+    if (result.finalState && result.finalState !== 'TRAP') {
+      this.visualizers.minDFA?.highlightState(result.finalState);
+    }
+  }
+
+  displayVerdict(result) {
+    const container = this.el('sim-verdict-container');
+    if (!container || !result) return;
+
+    const cls = result.accepted ? 'verdict-accepted' : 'verdict-rejected';
+    const icon = result.accepted ? '✅ ACCEPTED' : '❌ REJECTED';
+
+    container.innerHTML = `
+      <div class="verdict-box ${cls}">
+        <div>
+          <div style="font-size: 0.95rem; font-weight: bold;">${icon}</div>
+          <div style="font-size: 0.82rem; font-weight: normal; margin-top: 2px;">${result.reason}</div>
+        </div>
+      </div>
+    `;
+  }
+
+  startStepSimulation() {
+    const input = this.el('test-string-input');
+    const str = input ? input.value.trim() : '';
+    const { minDFA } = this.currentData;
+    if (!minDFA) return;
+
+    this.simTrace = simulateDFA(minDFA, str);
+    this.simStepIndex = 0;
+
+    const stepperContainer = this.el('sim-stepper-container');
+    if (stepperContainer) {
+      stepperContainer.innerHTML = `
+        <div class="trace-stepper">
+          <button id="step-prev-btn" class="btn btn-secondary btn-sm" disabled>⏮ Prev</button>
+          <button id="step-next-btn" class="btn btn-primary btn-sm">Next ⏭</button>
+          <span id="step-info" style="font-size: 0.8rem; font-weight: 600; flex: 1; text-align: center;"></span>
+        </div>
+      `;
+
+      this.el('step-prev-btn')?.addEventListener('click', () => this.applyStep(-1));
+      this.el('step-next-btn')?.addEventListener('click', () => this.applyStep(1));
+    }
+
+    const verdictContainer = this.el('sim-verdict-container');
+    if (verdictContainer) verdictContainer.innerHTML = '';
+
+    this.renderCurrentStep();
+  }
+
+  applyStep(direction) {
+    if (!this.simTrace || !this.simTrace.trace) return;
+    this.simStepIndex += direction;
+    this.simStepIndex = Math.max(0, Math.min(this.simStepIndex, this.simTrace.trace.length - 1));
+    this.renderCurrentStep();
+  }
+
+  renderCurrentStep() {
+    if (!this.simTrace || !this.simTrace.trace) return;
+    const item = this.simTrace.trace[this.simStepIndex];
+    if (!item) return;
+    const total = this.simTrace.trace.length - 1;
+
+    const infoEl = this.el('step-info');
+    if (infoEl) {
+      infoEl.textContent = `Step ${this.simStepIndex} of ${total}: ${item.action}`;
+    }
+
+    const prevBtn = this.el('step-prev-btn');
+    if (prevBtn) prevBtn.disabled = this.simStepIndex === 0;
+
+    const nextBtn = this.el('step-next-btn');
+    if (nextBtn) nextBtn.disabled = this.simStepIndex === total;
+
+    // Highlight state on graph
+    if (item.currentState && item.currentState !== 'TRAP / DEAD') {
+      this.visualizers.minDFA?.highlightState(item.currentState, item.fromState);
+    } else {
+      this.visualizers.minDFA?.clearHighlight();
+    }
+
+    // Highlight row in table
+    document.querySelectorAll('#table-min tr').forEach(tr => tr.classList.remove('active-state-row'));
+    const targetRow = document.querySelector(`#table-min tr[data-state="${item.currentState}"]`);
+    if (targetRow) targetRow.classList.add('active-state-row');
+
+    if (this.simStepIndex === total) {
+      this.displayVerdict(this.simTrace);
+    }
+  }
+
+  resetSimulation() {
+    this.simTrace = null;
+    this.simStepIndex = 0;
+    const stepperContainer = this.el('sim-stepper-container');
+    if (stepperContainer) stepperContainer.innerHTML = '';
+    const verdictContainer = this.el('sim-verdict-container');
+    if (verdictContainer) verdictContainer.innerHTML = '';
+    this.visualizers.minDFA?.clearHighlight();
+    document.querySelectorAll('tr').forEach(tr => tr.classList.remove('active-state-row'));
+  }
+
+  /**
+   * Batch Tests
+   */
+  runBatchTests() {
+    const area = this.el('batch-input-area');
+    const raw = area ? area.value : '';
+    const strings = raw.split(/[\n,]/).map(s => s.trim()).filter(s => s.length >= 0 && s !== '');
+    const { minDFA } = this.currentData;
+    const tbody = this.el('batch-results-body');
+    if (!tbody || !minDFA) return;
+
+    if (strings.length === 0) {
+      strings.push('ε');
+    }
+
+    let html = '';
+    for (const s of strings) {
+      const testStr = s === 'ε' || s === "''" || s === '""' ? '' : s;
+      const res = simulateDFA(minDFA, testStr);
+
+      const badge = res.accepted
+        ? `<span style="background: rgba(16, 185, 129, 0.2); color: var(--accent-color); padding: 2px 8px; border-radius: 4px; font-weight: bold;">ACCEPTED</span>`
+        : `<span style="background: rgba(239, 68, 68, 0.2); color: var(--danger-color); padding: 2px 8px; border-radius: 4px; font-weight: bold;">REJECTED</span>`;
+
+      const pathStr = res.trace.map(t => t.currentState).join(' → ');
+
+      html += `<tr>
+        <td><code>${s === '' ? 'ε' : s}</code></td>
+        <td>${testStr.length}</td>
+        <td>${badge}</td>
+        <td><strong>${res.finalState}</strong></td>
+        <td><small style="color: var(--text-muted);">${pathStr}</small></td>
+      </tr>`;
+    }
+    tbody.innerHTML = html;
+  }
+
+  copySpecificTable(type) {
+    let tableData = null;
+    let title = '';
+
+    if (type === 'min') {
+      tableData = this.currentData.minDFA?.getTransitionTable();
+      title = 'Minimized DFA Transition Table';
+    } else if (type === 'dfa') {
+      tableData = this.currentData.dfa?.getTransitionTable();
+      title = 'DFA Transition Table (Subset Construction)';
+    } else if (type === 'nfa') {
+      tableData = this.currentData.nfa?.getTransitionTable(this.currentData.parsed?.alphabet);
+      title = 'ε-NFA Transition Table (Thompson)';
+    }
+
+    if (!tableData) return;
+
+    let md = `### ${title}\n\n`;
+    md += `| ${tableData.headers.join(' | ')} |\n`;
+    md += `| ${tableData.headers.map(() => ':---:').join(' | ')} |\n`;
+
+    for (const row of tableData.rows) {
+      const cols = [row.label];
+      if (row.originalGroup) cols.push(row.originalGroup);
+      if (row.nfaSubset) cols.push(row.nfaSubset);
+      for (const symbol of (tableData.alphabet || [])) {
+        cols.push(row.cells ? (row.cells[symbol] || '—') : '—');
+      }
+      md += `| ${cols.join(' | ')} |\n`;
+    }
+
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(md).then(() => {
+        alert(`${title} copied to clipboard as Markdown!`);
+      }).catch(() => prompt('Copy Markdown table below:', md));
+    } else {
+      prompt('Copy Markdown table below:', md);
+    }
+  }
+
+  exportCurrentSVG() {
+    let viz = this.visualizers.minDFA;
+    if (this.activeTab === 'tab-dfa') viz = this.visualizers.dfa;
+    if (this.activeTab === 'tab-nfa') viz = this.visualizers.nfa;
+    viz?.exportSVG();
+  }
+
+  exportLaTeX() {
+    const { minDFA } = this.currentData;
+    if (!minDFA) return;
+    const tableData = minDFA.getTransitionTable();
+    let latex = `% LaTeX Transition Table for Minimized DFA\n\\begin{table}[h]\n\\centering\n\\begin{tabular}{|l|l|${tableData.alphabet.map(() => 'c|').join('')}}\n\\hline\n`;
+    latex += `State & Merged Set & ${tableData.alphabet.map(a => `${a}<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Regular Expression to DFA Converter | Theory of Computation</title>
+  <style>
+:root {
+  --bg-primary: #0f172a;
+  --bg-secondary: #1e293b;
+  --bg-tertiary: #334155;
+  --bg-card: rgba(30, 41, 59, 0.9);
+  --border-color: #475569;
+  --text-main: #f8fafc;
+  --text-muted: #94a3b8;
+  --primary-color: #3b82f6;
+  --primary-hover: #2563eb;
+  --accent-color: #10b981;
+  --accent-hover: #059669;
+  --danger-color: #ef4444;
+  --warning-color: #f59e0b;
+  --state-bg: #1e293b;
+  --state-border: #94a3b8;
+  --state-active-bg: #1e3a8a;
+  --edge-color: #64748b;
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+}
+
+[data-theme="light"] {
+  --bg-primary: #f8fafc;
+  --bg-secondary: #ffffff;
+  --bg-tertiary: #f1f5f9;
+  --bg-card: rgba(255, 255, 255, 0.95);
+  --border-color: #cbd5e1;
+  --text-main: #0f172a;
+  --text-muted: #64748b;
+  --primary-color: #2563eb;
+  --primary-hover: #1d4ed8;
+  --accent-color: #059669;
+  --accent-hover: #047857;
+  --danger-color: #dc2626;
+  --warning-color: #d97706;
+  --state-bg: #ffffff;
+  --state-border: #475569;
+  --state-active-bg: #dbeafe;
+  --edge-color: #64748b;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  background-color: var(--bg-primary);
+  color: var(--text-main);
+  line-height: 1.5;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Header */
+header {
+  background-color: var(--bg-secondary);
+  border-bottom: 1px solid var(--border-color);
+  padding: 0.85rem 1.75rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  backdrop-filter: blur(8px);
+}
+
+.logo-area {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.logo-icon {
+  background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+  color: white;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+  font-weight: bold;
+  box-shadow: var(--shadow-md);
+}
+
+.title-group h1 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.title-group p {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+.header-actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+/* Main Layout */
+.app-container {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+  height: calc(100vh - 66px);
+}
+
+/* Sidebar Controls */
+.sidebar {
+  width: 410px;
+  background-color: var(--bg-secondary);
+  border-right: 1px solid var(--border-color);
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  padding: 1.25rem;
+  gap: 1.25rem;
+}
+
+/* Main Viewport */
+.main-viewport {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--bg-primary);
+  overflow: hidden;
+}
+
+/* Cards & Sections */
+.control-card {
+  background-color: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.card-title {
+  font-size: 0.82rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* Form Controls */
+.input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+label {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--text-main);
+}
+
+input[type="text"], select {
+  width: 100%;
+  padding: 0.65rem 0.85rem;
+  background-color: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  color: var(--text-main);
+  font-family: var(--font-mono);
+  font-size: 0.95rem;
+  outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+input[type="text"]:focus, select:focus {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25);
+}
+
+.operator-bar {
+  display: flex;
+  gap: 5px;
+  flex-wrap: wrap;
+}
+
+.op-btn {
+  background-color: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  color: var(--text-main);
+  padding: 4px 10px;
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  font-weight: 600;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.op-btn:hover {
+  background-color: var(--primary-color);
+  color: white;
+  border-color: var(--primary-color);
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 0.65rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  border-radius: var(--radius-sm);
+  border: none;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  user-select: none;
+}
+
+.btn-primary {
+  background-color: var(--primary-color);
+  color: white;
+}
+
+.btn-primary:hover {
+  background-color: var(--primary-hover);
+}
+
+.btn-accent {
+  background-color: var(--accent-color);
+  color: white;
+}
+
+.btn-accent:hover {
+  background-color: var(--accent-hover);
+}
+
+.btn-secondary {
+  background-color: var(--bg-tertiary);
+  color: var(--text-main);
+  border: 1px solid var(--border-color);
+}
+
+.btn-secondary:hover {
+  background-color: var(--border-color);
+}
+
+.btn-sm {
+  padding: 4px 10px;
+  font-size: 0.8rem;
+}
+
+/* Tabs */
+.tabs-header {
+  background-color: var(--bg-secondary);
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  overflow-x: auto;
+  padding: 0 1.25rem;
+  gap: 4px;
+}
+
+.tab-btn {
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--text-muted);
+  padding: 0.8rem 1rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.15s ease;
+}
+
+.tab-btn:hover {
+  color: var(--text-main);
+}
+
+.tab-btn.active {
+  color: var(--primary-color);
+  border-bottom-color: var(--primary-color);
+}
+
+.tab-badge {
+  font-size: 0.7rem;
+  padding: 2px 6px;
+  border-radius: 12px;
+  background-color: var(--bg-tertiary);
+  color: var(--text-muted);
+}
+
+.tab-btn.active .tab-badge {
+  background-color: rgba(59, 130, 246, 0.2);
+  color: var(--primary-color);
+}
+
+/* View Mode Selector (Split / Diagram / Table) */
+.view-mode-bar {
+  display: flex;
+  gap: 4px;
+  background-color: var(--bg-secondary);
+  padding: 4px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-color);
+}
+
+.view-btn {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  padding: 4px 10px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.view-btn.active {
+  background-color: var(--primary-color);
+  color: white;
+}
+
+/* Tab Content Areas */
+.tab-content {
+  display: none;
+  flex: 1;
+  overflow: hidden;
+  position: relative;
+}
+
+.tab-content.active {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Graph Canvas Split */
+.graph-container {
+  flex: 1;
+  position: relative;
+  background: radial-gradient(circle at center, rgba(30, 41, 59, 0.4) 0%, transparent 70%);
+  overflow: hidden;
+  transition: flex 0.2s ease;
+}
+
+.graph-controls-overlay {
+  position: absolute;
+  bottom: 16px;
+  right: 16px;
+  display: flex;
+  gap: 6px;
+  background-color: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 5px;
+  box-shadow: var(--shadow-md);
+  z-index: 10;
+}
+
+.graph-info-overlay {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  background-color: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 8px 12px;
+  box-shadow: var(--shadow-md);
+  font-size: 0.82rem;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  pointer-events: none;
+  z-index: 10;
+}
+
+/* Detail Bottom Panel */
+.bottom-panel {
+  height: 250px;
+  background-color: var(--bg-secondary);
+  border-top: 1px solid var(--border-color);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  transition: height 0.2s ease;
+}
+
+.bottom-panel-header {
+  padding: 0.5rem 1.25rem;
+  background-color: var(--bg-tertiary);
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.bottom-panel-body {
+  flex: 1;
+  overflow: auto;
+  padding: 0.75rem 1rem;
+}
+
+/* Modes: Diagram-Only or Table-Only */
+.mode-diagram-only .graph-container {
+  flex: 1;
+}
+.mode-diagram-only .bottom-panel {
+  display: none;
+}
+
+.mode-table-only .graph-container {
+  display: none;
+}
+.mode-table-only .bottom-panel {
+  height: 100%;
+}
+
+/* Scrollable Detail View */
+.scrollable-page {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1.5rem 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+/* Transition Tables Styling - Clean & Simple */
+.table-wrapper {
+  overflow-x: auto;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  background-color: var(--bg-secondary);
+  box-shadow: var(--shadow-sm);
+}
+
+table.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  text-align: left;
+}
+
+table.data-table th {
+  background-color: var(--bg-tertiary);
+  color: var(--text-main);
+  padding: 10px 14px;
+  border-bottom: 2px solid var(--border-color);
+  white-space: nowrap;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+}
+
+table.data-table td {
+  padding: 9px 14px;
+  border-bottom: 1px solid var(--border-color);
+  color: var(--text-main);
+  vertical-align: middle;
+}
+
+table.data-table tr:last-child td {
+  border-bottom: none;
+}
+
+table.data-table tr:hover td {
+  background-color: rgba(59, 130, 246, 0.06);
+}
+
+table.data-table tr.active-state-row td {
+  background-color: rgba(59, 130, 246, 0.22);
+  color: var(--text-main);
+  font-weight: bold;
+}
+
+/* Badges for States in Tables */
+.state-cell-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.state-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  color: var(--text-main);
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 4px;
+}
+
+.state-pill-main {
+  background-color: rgba(59, 130, 246, 0.15);
+  border-color: var(--primary-color);
+  color: var(--primary-color);
+  font-size: 0.85rem;
+}
+
+.badge-start {
+  background-color: rgba(16, 185, 129, 0.2);
+  color: var(--accent-color);
+  border: 1px solid var(--accent-color);
+  font-size: 0.68rem;
+  font-weight: 800;
+  padding: 2px 5px;
+  border-radius: 3px;
+  letter-spacing: 0.04em;
+}
+
+.badge-accept {
+  background-color: rgba(245, 158, 11, 0.2);
+  color: var(--warning-color);
+  border: 1px solid var(--warning-color);
+  font-size: 0.68rem;
+  font-weight: 800;
+  padding: 2px 5px;
+  border-radius: 3px;
+  letter-spacing: 0.04em;
+}
+
+.badge-both {
+  background: linear-gradient(90deg, rgba(16, 185, 129, 0.2), rgba(245, 158, 11, 0.2));
+  color: #38bdf8;
+  border: 1px solid #38bdf8;
+  font-size: 0.68rem;
+  font-weight: 800;
+  padding: 2px 5px;
+  border-radius: 3px;
+}
+
+.badge-normal {
+  opacity: 0;
+  display: inline-block;
+  width: 50px;
+}
+
+.empty-symbol {
+  color: var(--text-muted);
+  font-weight: normal;
+  font-size: 0.95rem;
+}
+
+.subset-badge {
+  font-family: var(--font-mono);
+  background-color: var(--bg-tertiary);
+  padding: 2px 6px;
+  border-radius: 4px;
+  color: var(--text-muted);
+  font-size: 0.82rem;
+}
+
+/* Simulator Controls & Trace */
+.sim-controls {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.trace-stepper {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  margin-top: 8px;
+  padding: 8px;
+  background-color: var(--bg-secondary);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-color);
+}
+
+.verdict-box {
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius-md);
+  margin-top: 8px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-weight: 600;
+}
+
+.verdict-accepted {
+  background-color: rgba(16, 185, 129, 0.15);
+  border: 1px solid var(--accent-color);
+  color: var(--accent-color);
+}
+
+.verdict-rejected {
+  background-color: rgba(239, 68, 68, 0.15);
+  border: 1px solid var(--danger-color);
+  color: var(--danger-color);
+}
+
+/* Theory Info Blocks */
+.info-callout {
+  background-color: var(--bg-tertiary);
+  border-left: 4px solid var(--primary-color);
+  padding: 1rem 1.25rem;
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  font-size: 0.9rem;
+  line-height: 1.6;
+}
+
+.info-callout h4 {
+  font-size: 1rem;
+  margin-bottom: 0.5rem;
+  color: var(--text-main);
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+  .app-container {
+    flex-direction: column;
+    height: auto;
+  }
+  .sidebar {
+    width: 100%;
+    border-right: none;
+    border-bottom: 1px solid var(--border-color);
+  }
+  .main-viewport {
+    min-height: 600px;
+  }
+}
+
+/* Modal Backdrop & Card */
+.modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal-card {
+  background-color: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+  width: 90%;
+  max-width: 420px;
+  overflow: hidden;
+  animation: modalFadeIn 0.2s ease-out;
+}
+
+@keyframes modalFadeIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.modal-header {
+  padding: 1rem 1.25rem;
+  background-color: var(--bg-tertiary);
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.modal-header h3 {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.modal-close {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 1.5rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: color 0.15s ease;
+}
+
+.modal-close:hover {
+  color: var(--danger-color);
+}
+
+.modal-body {
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+</style>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚡</text></svg>">
+</head>
+<body>
+
+  <!-- Top Navigation Bar -->
+  <header>
+    <div class="logo-area">
+      <div class="logo-icon">δ</div>
+      <div class="title-group">
+        <h1>Regex to DFA Converter & Simulator</h1>
+        <p>Theory of Computation • Thompson's Construction • Subset Construction • Hopcroft Minimization</p>
+      </div>
+    </div>
+    <div class="header-actions">
+      <button id="mobile-qr-btn" class="btn btn-secondary btn-sm" title="Open on Mobile via Link or QR Code">
+        📱 Mobile Link
+      </button>
+      <button id="theme-toggle-btn" class="btn btn-secondary btn-sm" title="Toggle Light / Dark Mode">
+        🌓 Theme
+      </button>
+      <a href="https://en.wikipedia.org/wiki/Powerset_construction" target="_blank" rel="noopener" class="btn btn-secondary btn-sm">
+        📖 TOC Reference
+      </a>
+    </div>
+  </header>
+
+  <!-- Main Workspace -->
+  <div class="app-container">
+
+    <!-- Left Control Sidebar -->
+    <aside class="sidebar">
+
+      <!-- Regex Input Card -->
+      <div class="control-card">
+        <div class="card-title">
+          <span>Regular Expression Input</span>
+          <span id="alphabet-badge" class="tab-badge">Σ = { }</span>
+        </div>
+
+        <div class="input-group">
+          <label for="regex-input">Enter Infix Regex:</label>
+          <input type="text" id="regex-input" value="(a|b)*abb" placeholder="e.g. (a|b)*abb or (0|1)*00" autocomplete="off" spellcheck="false">
+        </div>
+
+        <!-- Quick Symbol Inserter -->
+        <div class="operator-bar">
+          <button class="op-btn" data-insert="*">* (Star)</button>
+          <button class="op-btn" data-insert="|">| (Union)</button>
+          <button class="op-btn" data-insert="+">+ (Plus)</button>
+          <button class="op-btn" data-insert="?">? (Optional)</button>
+          <button class="op-btn" data-insert="ε">ε (Epsilon)</button>
+          <button class="op-btn" data-insert="(">(</button>
+          <button class="op-btn" data-insert=")">)</button>
+        </div>
+
+        <!-- TOC Preset Expressions -->
+        <div class="input-group">
+          <label for="preset-select">Standard TOC Presets:</label>
+          <select id="preset-select">
+            <option value="">-- Choose a textbook example --</option>
+            <option value="(a|b)*abb">(a|b)*abb — Strings ending with 'abb'</option>
+            <option value="a(b|c)*d">a(b|c)*d — Starts with 'a', ends with 'd'</option>
+            <option value="(0|1)*00(0|1)*">(0|1)*00(0|1)* — Substring '00'</option>
+            <option value="(a|b)*a(a|b)">(a|b)*a(a|b) — 2nd symbol from end is 'a'</option>
+            <option value="(00|11)*">(00|11)* — Even length repeating pairs</option>
+            <option value="a+b*">a+b* — At least one 'a', then any 'b's</option>
+            <option value="(0|1)*1">(0|1)*1 — Odd binary numbers</option>
+            <option value="a(a|b)*b|b(a|b)*a">Different start and end symbols</option>
+          </select>
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 8px; font-size: 0.8rem;">
+          <input type="checkbox" id="plus-union-check">
+          <label for="plus-union-check" style="cursor: pointer; font-size: 0.8rem; color: var(--text-muted);">
+            Treat binary '+' as union (e.g. <code>a+b</code> as <code>a|b</code>)
+          </label>
+        </div>
+
+        <button id="convert-btn" class="btn btn-primary" style="width: 100%;">
+          ⚡ Convert to DFA & Minimize
+        </button>
+      </div>
+
+      <!-- Quick String Simulator Card -->
+      <div class="control-card">
+        <div class="card-title">
+          <span>String Validator / Simulator</span>
+        </div>
+
+        <div class="input-group">
+          <label for="test-string-input">Input String (w):</label>
+          <input type="text" id="test-string-input" value="abb" placeholder="Enter string, e.g. abb or ε" autocomplete="off" spellcheck="false">
+        </div>
+
+        <div class="sim-controls">
+          <button id="sim-test-btn" class="btn btn-accent btn-sm">▶ Test String</button>
+          <button id="sim-step-btn" class="btn btn-secondary btn-sm">👣 Step-by-Step</button>
+          <button id="sim-reset-btn" class="btn btn-secondary btn-sm">↺ Reset</button>
+        </div>
+
+        <div id="sim-stepper-container"></div>
+        <div id="sim-verdict-container"></div>
+      </div>
+
+      <!-- Automaton Stats Card -->
+      <div class="control-card">
+        <div class="card-title">
+          <span>Automata Complexity Metrics</span>
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; text-align: center;">
+          <div style="background-color: var(--bg-secondary); padding: 8px; border-radius: 4px; border: 1px solid var(--border-color);">
+            <div style="font-size: 0.75rem; color: var(--text-muted);">ε-NFA</div>
+            <div id="stat-nfa-states" style="font-size: 1.25rem; font-weight: bold; color: var(--primary-color);">0</div>
+            <div style="font-size: 0.7rem; color: var(--text-muted);">States</div>
+          </div>
+          <div style="background-color: var(--bg-secondary); padding: 8px; border-radius: 4px; border: 1px solid var(--border-color);">
+            <div style="font-size: 0.75rem; color: var(--text-muted);">DFA</div>
+            <div id="stat-dfa-states" style="font-size: 1.25rem; font-weight: bold; color: var(--accent-color);">0</div>
+            <div style="font-size: 0.7rem; color: var(--text-muted);">States</div>
+          </div>
+          <div style="background-color: var(--bg-secondary); padding: 8px; border-radius: 4px; border: 1px solid var(--border-color);">
+            <div style="font-size: 0.75rem; color: var(--text-muted);">Min DFA</div>
+            <div id="stat-min-states" style="font-size: 1.25rem; font-weight: bold; color: var(--warning-color);">0</div>
+            <div style="font-size: 0.7rem; color: var(--text-muted);">States</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Export Actions Card -->
+      <div class="control-card">
+        <div class="card-title">
+          <span>Export Options</span>
+        </div>
+        <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+          <button id="export-svg-btn" class="btn btn-secondary btn-sm">💾 Download SVG</button>
+          <button id="export-latex-btn" class="btn btn-secondary btn-sm">📋 Copy LaTeX Table</button>
+          <button id="export-markdown-btn" class="btn btn-secondary btn-sm">📝 Copy Markdown</button>
+        </div>
+      </div>
+
+    </aside>
+
+    <!-- Main Viewport Area -->
+    <main class="main-viewport">
+
+      <!-- Navigation Tabs -->
+      <nav class="tabs-header">
+        <button class="tab-btn active" data-tab="tab-min-dfa">
+          Minimized DFA <span class="tab-badge" id="badge-min-dfa">Hopcroft</span>
+        </button>
+        <button class="tab-btn" data-tab="tab-dfa">
+          DFA <span class="tab-badge" id="badge-dfa">Subset Construction</span>
+        </button>
+        <button class="tab-btn" data-tab="tab-nfa">
+          ε-NFA <span class="tab-badge" id="badge-nfa">Thompson</span>
+        </button>
+        <button class="tab-btn" data-tab="tab-compare">
+          📊 All 3 Tables & Comparison
+        </button>
+        <button class="tab-btn" data-tab="tab-steps">
+          Step-by-Step Proofs & Logs
+        </button>
+        <button class="tab-btn" data-tab="tab-batch">
+          Batch String Tester
+        </button>
+        <button class="tab-btn" data-tab="tab-theory">
+          TOC Theory Guide
+        </button>
+      </nav>
+
+      <!-- TAB 1: Minimized DFA View -->
+      <section id="tab-min-dfa" class="tab-content active">
+        <div class="graph-container" id="graph-container-min-dfa">
+          <div class="graph-info-overlay">
+            <strong>Minimized DFA Diagram (Hopcroft Equivalence)</strong>
+            <span id="min-dfa-status-text">States: 0 | Start: — | Accept: { }</span>
+          </div>
+          <div class="graph-controls-overlay">
+            <button class="btn btn-secondary btn-sm" id="zoom-in-min">+</button>
+            <button class="btn btn-secondary btn-sm" id="zoom-out-min">-</button>
+            <button class="btn btn-secondary btn-sm" id="zoom-reset-min">Fit</button>
+          </div>
+        </div>
+
+        <div class="bottom-panel" id="panel-min-dfa">
+          <div class="bottom-panel-header">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span>Minimized DFA Transition Table δ(M, a)</span>
+              <button class="btn btn-secondary btn-sm copy-min-table-btn">📋 Copy Table</button>
+            </div>
+            <div class="view-mode-bar">
+              <button class="view-btn active" data-target="tab-min-dfa" data-mode="split">Split</button>
+              <button class="view-btn" data-target="tab-min-dfa" data-mode="diagram">Diagram Only</button>
+              <button class="view-btn" data-target="tab-min-dfa" data-mode="table">Table Only</button>
+            </div>
+          </div>
+          <div class="bottom-panel-body" id="min-dfa-table-container"></div>
+        </div>
+      </section>
+
+      <!-- TAB 2: DFA (Subset Construction) View -->
+      <section id="tab-dfa" class="tab-content">
+        <div class="graph-container" id="graph-container-dfa">
+          <div class="graph-info-overlay">
+            <strong>DFA Diagram (Subset Construction)</strong>
+            <span id="dfa-status-text">States: 0 | Start: — | Accept: { }</span>
+          </div>
+          <div class="graph-controls-overlay">
+            <button class="btn btn-secondary btn-sm" id="zoom-in-dfa">+</button>
+            <button class="btn btn-secondary btn-sm" id="zoom-out-dfa">-</button>
+            <button class="btn btn-secondary btn-sm" id="zoom-reset-dfa">Fit</button>
+          </div>
+        </div>
+
+        <div class="bottom-panel" id="panel-dfa">
+          <div class="bottom-panel-header">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span>DFA Transition Table with NFA State Subsets</span>
+              <button class="btn btn-secondary btn-sm copy-dfa-table-btn">📋 Copy Table</button>
+            </div>
+            <div class="view-mode-bar">
+              <button class="view-btn active" data-target="tab-dfa" data-mode="split">Split</button>
+              <button class="view-btn" data-target="tab-dfa" data-mode="diagram">Diagram Only</button>
+              <button class="view-btn" data-target="tab-dfa" data-mode="table">Table Only</button>
+            </div>
+          </div>
+          <div class="bottom-panel-body" id="dfa-table-container"></div>
+        </div>
+      </section>
+
+      <!-- TAB 3: ε-NFA (Thompson's Construction) View -->
+      <section id="tab-nfa" class="tab-content">
+        <div class="graph-container" id="graph-container-nfa">
+          <div class="graph-info-overlay">
+            <strong>ε-NFA Diagram (Thompson's Construction)</strong>
+            <span id="nfa-status-text">States: 0 | Start: q0 | Accept: { }</span>
+          </div>
+          <div class="graph-controls-overlay">
+            <button class="btn btn-secondary btn-sm" id="zoom-in-nfa">+</button>
+            <button class="btn btn-secondary btn-sm" id="zoom-out-nfa">-</button>
+            <button class="btn btn-secondary btn-sm" id="zoom-reset-nfa">Fit</button>
+          </div>
+        </div>
+
+        <div class="bottom-panel" id="panel-nfa">
+          <div class="bottom-panel-header">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span>ε-NFA Transition Table δ(q, a)</span>
+              <button class="btn btn-secondary btn-sm copy-nfa-table-btn">📋 Copy Table</button>
+            </div>
+            <div class="view-mode-bar">
+              <button class="view-btn active" data-target="tab-nfa" data-mode="split">Split</button>
+              <button class="view-btn" data-target="tab-nfa" data-mode="diagram">Diagram Only</button>
+              <button class="view-btn" data-target="tab-nfa" data-mode="table">Table Only</button>
+            </div>
+          </div>
+          <div class="bottom-panel-body" id="nfa-table-container"></div>
+        </div>
+      </section>
+
+      <!-- TAB 4: All 3 Tables & Comparison -->
+      <section id="tab-compare" class="tab-content">
+        <div class="scrollable-page">
+
+          <!-- Card 1: Minimized DFA Table -->
+          <div class="control-card">
+            <div class="card-title">
+              <span>Stage 3: Minimized DFA Transition Table (Final Minimal Machine)</span>
+              <button class="btn btn-secondary btn-sm copy-min-table-btn">📋 Copy Markdown</button>
+            </div>
+            <p style="font-size: 0.85rem; color: var(--text-muted);">
+              Obtained after partitioning equivalent states with Hopcroft's algorithm. Minimum possible number of states.
+            </p>
+            <div class="table-wrapper" id="compare-min-table-container"></div>
+          </div>
+
+          <!-- Card 2: DFA Table -->
+          <div class="control-card">
+            <div class="card-title">
+              <span>Stage 2: Deterministic Finite Automaton (DFA) Transition Table</span>
+              <button class="btn btn-secondary btn-sm copy-dfa-table-btn">📋 Copy Markdown</button>
+            </div>
+            <p style="font-size: 0.85rem; color: var(--text-muted);">
+              Obtained via Rabin-Scott Subset Construction. Each row maps an equivalent subset of NFA states.
+            </p>
+            <div class="table-wrapper" id="compare-dfa-table-container"></div>
+          </div>
+
+          <!-- Card 3: NFA Table -->
+          <div class="control-card">
+            <div class="card-title">
+              <span>Stage 1: Non-Deterministic Finite Automaton (ε-NFA) Transition Table</span>
+              <button class="btn btn-secondary btn-sm copy-nfa-table-btn">📋 Copy Markdown</button>
+            </div>
+            <p style="font-size: 0.85rem; color: var(--text-muted);">
+              Inductively constructed from the postfix regular expression using Thompson's structural rules.
+            </p>
+            <div class="table-wrapper" id="compare-nfa-table-container"></div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- TAB 5: Step-by-Step Proofs & Conversion Logs -->
+      <section id="tab-steps" class="tab-content">
+        <div class="scrollable-page">
+
+          <!-- Stage 1: Postfix Conversion -->
+          <div class="control-card">
+            <div class="card-title">
+              <span>Stage 0: Preprocessing & Shunting-Yard Infix to Postfix</span>
+            </div>
+            <p style="font-size: 0.85rem; color: var(--text-muted);">
+              Implicit concatenation operators (<code>·</code>) are inserted before converting the regular expression into Reverse Polish Notation (Postfix) to make operator precedence explicit.
+            </p>
+            <div style="font-family: var(--font-mono); background-color: var(--bg-secondary); padding: 12px; border-radius: 4px; font-size: 0.9rem; display: flex; flex-direction: column; gap: 6px;">
+              <div><strong>Raw Input:</strong> <span id="step-raw-regex" style="color: var(--primary-color);"></span></div>
+              <div><strong>Explicit Concat:</strong> <span id="step-concat-regex" style="color: var(--accent-color);"></span></div>
+              <div><strong>Postfix (RPN):</strong> <span id="step-postfix-regex" style="color: var(--warning-color);"></span></div>
+            </div>
+          </div>
+
+          <!-- Stage 2: Subset Construction Table -->
+          <div class="control-card">
+            <div class="card-title">
+              <span>Stage 2: Powerset Construction Detailed Log (ε-Closure & Transitions)</span>
+            </div>
+            <p style="font-size: 0.85rem; color: var(--text-muted);">
+              Shows the step-by-step computation of <code>move(State, symbol)</code> and <code>ε-closure(move)</code> for each unique DFA state subset.
+            </p>
+            <div class="table-wrapper" id="steps-subset-table-container"></div>
+          </div>
+
+          <!-- Stage 3: Hopcroft Partition Refinement Log -->
+          <div class="control-card">
+            <div class="card-title">
+              <span>Stage 3: Hopcroft DFA Minimization Iterations</span>
+            </div>
+            <p style="font-size: 0.85rem; color: var(--text-muted);">
+              Begins with partition <code>P₀ = { Non-Accepting, Accepting }</code> and iteratively refines groups based on transition equivalence until a fixed point is reached.
+            </p>
+            <div id="steps-minimization-container" style="display: flex; flex-direction: column; gap: 8px;"></div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- TAB 6: Batch Tester -->
+      <section id="tab-batch" class="tab-content">
+        <div class="scrollable-page">
+          <div class="control-card">
+            <div class="card-title">
+              <span>Batch String Verification Suite</span>
+            </div>
+            <p style="font-size: 0.85rem; color: var(--text-muted);">
+              Enter multiple strings (one per line or comma-separated) to test language membership simultaneously on the DFA:
+            </p>
+            <textarea id="batch-input-area" rows="6" style="width: 100%; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: var(--radius-sm); color: var(--text-main); font-family: var(--font-mono); padding: 10px;" placeholder="Enter strings:
+abb
+aabb
+ab
+a
+ε"></textarea>
+            <div>
+              <button id="batch-run-btn" class="btn btn-primary btn-sm">Run Batch Tests</button>
+            </div>
+            <div class="table-wrapper" style="margin-top: 10px;">
+              <table class="data-table" id="batch-results-table">
+                <thead>
+                  <tr>
+                    <th>Input String</th>
+                    <th>Length</th>
+                    <th>Result</th>
+                    <th>Final State</th>
+                    <th>Detailed Path</th>
+                  </tr>
+                </thead>
+                <tbody id="batch-results-body">
+                  <tr><td colspan="5" style="text-align: center; color: var(--text-muted);">Click "Run Batch Tests" to verify strings.</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 7: TOC Theory Guide -->
+      <section id="tab-theory" class="tab-content">
+        <div class="scrollable-page">
+          <div class="info-callout">
+            <h4>1. Mathematical Definition of a DFA</h4>
+            <p>
+              A <strong>Deterministic Finite Automaton (DFA)</strong> is formally defined as a 5-tuple:
+              <br><code>M = (Q, Σ, δ, q₀, F)</code>
+            </p>
+            <ul style="margin-left: 20px; margin-top: 8px;">
+              <li><strong>Q:</strong> A finite set of states.</li>
+              <li><strong>Σ:</strong> A finite alphabet of input symbols.</li>
+              <li><strong>δ:</strong> The transition function <code>δ : Q × Σ → Q</code> (deterministic mapping).</li>
+              <li><strong>q₀:</strong> The start state, where <code>q₀ ∈ Q</code>.</li>
+              <li><strong>F:</strong> The set of accepting / final states, where <code>F ⊆ Q</code>.</li>
+            </ul>
+          </div>
+
+          <div class="info-callout">
+            <h4>2. Thompson's Construction Algorithm (Regex → ε-NFA)</h4>
+            <p>
+              Ken Thompson's algorithm constructs an ε-NFA inductively from the syntax of regular expressions:
+            </p>
+            <ul style="margin-left: 20px; margin-top: 8px;">
+              <li><strong>Base Symbol 'a':</strong> Two states connected by edge labeled <code>a</code>.</li>
+              <li><strong>Concatenation (AB):</strong> The accept state of A connects to the start state of B via an <code>ε</code> transition.</li>
+              <li><strong>Alternation (A | B):</strong> New start state forks with <code>ε</code> to A.start and B.start; accepts merge with <code>ε</code> into a new accept.</li>
+              <li><strong>Kleene Star (A*):</strong> Introduces an <code>ε</code>-loop for repetition and an <code>ε</code>-bypass for 0 occurrences.</li>
+            </ul>
+            <p style="margin-top: 8px;"><strong>Time & Space Complexity:</strong> O(n) where n is the length of the regular expression.</p>
+          </div>
+
+          <div class="info-callout">
+            <h4>3. Powerset / Subset Construction (ε-NFA → DFA)</h4>
+            <p>
+              Invented by Michael O. Rabin and Dana Scott (1959 Turing Award):
+            </p>
+            <ul style="margin-left: 20px; margin-top: 8px;">
+              <li>Computes <strong>ε-closure(S)</strong>: the set of states reachable via only ε-transitions from state set S.</li>
+              <li>Each state in the DFA corresponds to a distinct <em>subset</em> of NFA states.</li>
+              <li>Transition on symbol <code>a</code>: <code>DFA_Next = ε-closure(move(DFA_Current, a))</code>.</li>
+              <li>A DFA state is accepting if it contains at least one NFA accepting state.</li>
+            </ul>
+            <p style="margin-top: 8px;"><strong>Complexity:</strong> Up to <code>2^|Q_NFA|</code> worst-case states, but in practice typically linear/polynomial for standard expressions.</p>
+          </div>
+
+          <div class="info-callout">
+            <h4>4. Hopcroft's Algorithm (DFA Minimization)</h4>
+            <p>
+              Finds the unique minimal state DFA accepting the same language (Myhill-Nerode Theorem):
+            </p>
+            <ul style="margin-left: 20px; margin-top: 8px;">
+              <li>Starts by separating states into two equivalence classes: <strong>F</strong> (accepting) and <strong>Q \ F</strong> (non-accepting).</li>
+              <li>Repeatedly partitions equivalence classes whenever two states transition to different classes on any alphabet symbol.</li>
+              <li>Terminates when no further partitions occur, yielding the minimal DFA with the smallest possible number of states.</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- Mobile Modal -->
+  <div id="mobile-modal" class="modal-backdrop" style="display: none;">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>📱 Open on Your Mobile Phone</h3>
+        <button id="close-modal-btn" class="modal-close">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 12px;">
+          Make sure your phone is connected to the same Wi-Fi network as this computer, then open this link or scan the QR code:
+        </p>
+        <div class="input-group" style="margin-bottom: 14px;">
+          <label>Mobile URL:</label>
+          <div style="display: flex; gap: 6px;">
+            <input type="text" id="mobile-url-input" readonly value="" style="font-weight: bold; color: var(--primary-color);">
+            <button id="copy-mobile-url-btn" class="btn btn-primary btn-sm">Copy</button>
+          </div>
+        </div>
+        <div style="text-align: center; padding: 12px; background: white; border-radius: var(--radius-sm); display: inline-block; margin: 0 auto; width: 100%;">
+          <img id="mobile-qr-img" src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=" alt="Scan QR Code to open on Mobile" width="180" height="180" style="display: block; margin: 0 auto;">
+          <div style="font-size: 0.75rem; color: #475569; margin-top: 6px; font-weight: 600;">Scan with phone camera</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  ).join(' & ')} \\\\\n\\hline\n`;
+
+    for (const row of tableData.rows) {
+      const cleanLabel = row.label.replace('->', '$\\to
+</body>
+</html>
+).replace('*', '$*
+</body>
+</html>
+);
+      const cells = tableData.alphabet.map(a => (row.cells ? row.cells[a] : '--') || '--').join(' & ');
+      const orig = row.originalGroup ? row.originalGroup.replace(/[{}]/g, '') : '';
+      latex += `${cleanLabel} & \\{${orig}\\} & ${cells} \\\\\n`;
+    }
+
+    latex += `\\hline\n\\end{tabular}\n\\caption{Transition table of the Minimized DFA}\n\\end{table}`;
+
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(latex).then(() => {
+        alert('LaTeX Transition Table copied to clipboard!');
+      }).catch(() => prompt('Copy LaTeX code below:', latex));
+    } else {
+      prompt('Copy LaTeX code below:', latex);
+    }
+  }
+
+  exportMarkdown() {
+    this.copySpecificTable('min');
+  }
+}
+
+// Safely instantiate when DOM is ready
+if (document.readyState === 'loading') {
+  window.addEventListener('DOMContentLoaded', () => {
+    new TOCApp();
+  });
+} else {
+  new TOCApp();
+}
+
+</script>
+</body>
+</html>

@@ -1,0 +1,24 @@
+{
+  "name": "regex-to-dfa-converter",
+  "version": "1.0.0",
+  "description": "Theory of Computation project: Converts Regular Expressions to DFA via Thompson's Construction, Subset Construction, and Hopcroft's Minimization.",
+  "main": "cli.js",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js",
+    "bundle": "node bundle.js",
+    "cli": "node cli.js",
+    "test": "node test.js"
+  },
+  "keywords": [
+    "theory-of-computation",
+    "automata",
+    "regex-to-dfa",
+    "thompsons-construction",
+    "subset-construction",
+    "dfa-minimization",
+    "hopcroft"
+  ],
+  "author": "TOC Project",
+  "license": "MIT"
+}

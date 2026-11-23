@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Regular Expression to DFA Converter | Theory of Computation</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚡</text></svg>">
+</head>
+<body>
+
+  <!-- Top Navigation Bar -->
+  <header>
+    <div class="logo-area">
+      <div class="logo-icon">δ</div>
+      <div class="title-group">
+        <h1>Regex to DFA Converter & Simulator</h1>
+        <p>Theory of Computation • Thompson's Construction • Subset Construction • Hopcroft Minimization</p>
+      </div>
+    </div>
+    <div class="header-actions">
+      <button id="mobile-qr-btn" class="btn btn-secondary btn-sm" title="Open on Mobile via Link or QR Code">
+        📱 Mobile Link
+      </button>
+      <button id="theme-toggle-btn" class="btn btn-secondary btn-sm" title="Toggle Light / Dark Mode">
+        🌓 Theme
+      </button>
+      <a href="https://en.wikipedia.org/wiki/Powerset_construction" target="_blank" rel="noopener" class="btn btn-secondary btn-sm">
+        📖 TOC Reference
+      </a>
+    </div>
+  </header>
+
+  <!-- Main Workspace -->
+  <div class="app-container">
+
+    <!-- Left Control Sidebar -->
+    <aside class="sidebar">
+
+      <!-- Regex Input Card -->
+      <div class="control-card">
+        <div class="card-title">
+          <span>Regular Expression Input</span>
+          <span id="alphabet-badge" class="tab-badge">Σ = { }</span>
+        </div>
+
+        <div class="input-group">
+          <label for="regex-input">Enter Infix Regex:</label>
+          <input type="text" id="regex-input" value="(a|b)*abb" placeholder="e.g. (a|b)*abb or (0|1)*00" autocomplete="off" spellcheck="false">
+        </div>
+
+        <!-- Quick Symbol Inserter -->
+        <div class="operator-bar">
+          <button class="op-btn" data-insert="*">* (Star)</button>
+          <button class="op-btn" data-insert="|">| (Union)</button>
+          <button class="op-btn" data-insert="+">+ (Plus)</button>
+          <button class="op-btn" data-insert="?">? (Optional)</button>
+          <button class="op-btn" data-insert="ε">ε (Epsilon)</button>
+          <button class="op-btn" data-insert="(">(</button>
+          <button class="op-btn" data-insert=")">)</button>
+        </div>
+
+        <!-- TOC Preset Expressions -->
+        <div class="input-group">
+          <label for="preset-select">Standard TOC Presets:</label>
+          <select id="preset-select">
+            <option value="">-- Choose a textbook example --</option>
+            <option value="(a|b)*abb">(a|b)*abb — Strings ending with 'abb'</option>
+            <option value="a(b|c)*d">a(b|c)*d — Starts with 'a', ends with 'd'</option>
+            <option value="(0|1)*00(0|1)*">(0|1)*00(0|1)* — Substring '00'</option>
+            <option value="(a|b)*a(a|b)">(a|b)*a(a|b) — 2nd symbol from end is 'a'</option>
+            <option value="(00|11)*">(00|11)* — Even length repeating pairs</option>
+            <option value="a+b*">a+b* — At least one 'a', then any 'b's</option>
+            <option value="(0|1)*1">(0|1)*1 — Odd binary numbers</option>
+            <option value="a(a|b)*b|b(a|b)*a">Different start and end symbols</option>
+          </select>
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 8px; font-size: 0.8rem;">
+          <input type="checkbox" id="plus-union-check">
+          <label for="plus-union-check" style="cursor: pointer; font-size: 0.8rem; color: var(--text-muted);">
+            Treat binary '+' as union (e.g. <code>a+b</code> as <code>a|b</code>)
+          </label>
+        </div>
+
+        <button id="convert-btn" class="btn btn-primary" style="width: 100%;">
+          ⚡ Convert to DFA & Minimize
+        </button>
+      </div>
+
+      <!-- Quick String Simulator Card -->
+      <div class="control-card">
+        <div class="card-title">
+          <span>String Validator / Simulator</span>
+        </div>
+
+        <div class="input-group">
+          <label for="test-string-input">Input String (w):</label>
+          <input type="text" id="test-string-input" value="abb" placeholder="Enter string, e.g. abb or ε" autocomplete="off" spellcheck="false">
+        </div>
+
+        <div class="sim-controls">
+          <button id="sim-test-btn" class="btn btn-accent btn-sm">▶ Test String</button>
+          <button id="sim-step-btn" class="btn btn-secondary btn-sm">👣 Step-by-Step</button>
+          <button id="sim-reset-btn" class="btn btn-secondary btn-sm">↺ Reset</button>
+        </div>
+
+        <div id="sim-stepper-container"></div>
+        <div id="sim-verdict-container"></div>
+      </div>
+
+      <!-- Automaton Stats Card -->
+      <div class="control-card">
+        <div class="card-title">
+          <span>Automata Complexity Metrics</span>
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; text-align: center;">
+          <div style="background-color: var(--bg-secondary); padding: 8px; border-radius: 4px; border: 1px solid var(--border-color);">
+            <div style="font-size: 0.75rem; color: var(--text-muted);">ε-NFA</div>
+            <div id="stat-nfa-states" style="font-size: 1.25rem; font-weight: bold; color: var(--primary-color);">0</div>
+            <div style="font-size: 0.7rem; color: var(--text-muted);">States</div>
+          </div>
+          <div style="background-color: var(--bg-secondary); padding: 8px; border-radius: 4px; border: 1px solid var(--border-color);">
+            <div style="font-size: 0.75rem; color: var(--text-muted);">DFA</div>
+            <div id="stat-dfa-states" style="font-size: 1.25rem; font-weight: bold; color: var(--accent-color);">0</div>
+            <div style="font-size: 0.7rem; color: var(--text-muted);">States</div>
+          </div>
+          <div style="background-color: var(--bg-secondary); padding: 8px; border-radius: 4px; border: 1px solid var(--border-color);">
+            <div style="font-size: 0.75rem; color: var(--text-muted);">Min DFA</div>
+            <div id="stat-min-states" style="font-size: 1.25rem; font-weight: bold; color: var(--warning-color);">0</div>
+            <div style="font-size: 0.7rem; color: var(--text-muted);">States</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Export Actions Card -->
+      <div class="control-card">
+        <div class="card-title">
+          <span>Export Options</span>
+        </div>
+        <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+          <button id="export-svg-btn" class="btn btn-secondary btn-sm">💾 Download SVG</button>
+          <button id="export-latex-btn" class="btn btn-secondary btn-sm">📋 Copy LaTeX Table</button>
+          <button id="export-markdown-btn" class="btn btn-secondary btn-sm">📝 Copy Markdown</button>
+        </div>
+      </div>
+
+    </aside>
+
+    <!-- Main Viewport Area -->
+    <main class="main-viewport">
+
+      <!-- Navigation Tabs -->
+      <nav class="tabs-header">
+        <button class="tab-btn active" data-tab="tab-min-dfa">
+          Minimized DFA <span class="tab-badge" id="badge-min-dfa">Hopcroft</span>
+        </button>
+        <button class="tab-btn" data-tab="tab-dfa">
+          DFA <span class="tab-badge" id="badge-dfa">Subset Construction</span>
+        </button>
+        <button class="tab-btn" data-tab="tab-nfa">
+          ε-NFA <span class="tab-badge" id="badge-nfa">Thompson</span>
+        </button>
+        <button class="tab-btn" data-tab="tab-compare">
+          📊 All 3 Tables & Comparison
+        </button>
+        <button class="tab-btn" data-tab="tab-steps">
+          Step-by-Step Proofs & Logs
+        </button>
+        <button class="tab-btn" data-tab="tab-batch">
+          Batch String Tester
+        </button>
+        <button class="tab-btn" data-tab="tab-theory">
+          TOC Theory Guide
+        </button>
+      </nav>
+
+      <!-- TAB 1: Minimized DFA View -->
+      <section id="tab-min-dfa" class="tab-content active">
+        <div class="graph-container" id="graph-container-min-dfa">
+          <div class="graph-info-overlay">
+            <strong>Minimized DFA Diagram (Hopcroft Equivalence)</strong>
+            <span id="min-dfa-status-text">States: 0 | Start: — | Accept: { }</span>
+          </div>
+          <div class="graph-controls-overlay">
+            <button class="btn btn-secondary btn-sm" id="zoom-in-min">+</button>
+            <button class="btn btn-secondary btn-sm" id="zoom-out-min">-</button>
+            <button class="btn btn-secondary btn-sm" id="zoom-reset-min">Fit</button>
+          </div>
+        </div>
+
+        <div class="bottom-panel" id="panel-min-dfa">
+          <div class="bottom-panel-header">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span>Minimized DFA Transition Table δ(M, a)</span>
+              <button class="btn btn-secondary btn-sm copy-min-table-btn">📋 Copy Table</button>
+            </div>
+            <div class="view-mode-bar">
+              <button class="view-btn active" data-target="tab-min-dfa" data-mode="split">Split</button>
+              <button class="view-btn" data-target="tab-min-dfa" data-mode="diagram">Diagram Only</button>
+              <button class="view-btn" data-target="tab-min-dfa" data-mode="table">Table Only</button>
+            </div>
+          </div>
+          <div class="bottom-panel-body" id="min-dfa-table-container"></div>
+        </div>
+      </section>
+
+      <!-- TAB 2: DFA (Subset Construction) View -->
+      <section id="tab-dfa" class="tab-content">
+        <div class="graph-container" id="graph-container-dfa">
+          <div class="graph-info-overlay">
+            <strong>DFA Diagram (Subset Construction)</strong>
+            <span id="dfa-status-text">States: 0 | Start: — | Accept: { }</span>
+          </div>
+          <div class="graph-controls-overlay">
+            <button class="btn btn-secondary btn-sm" id="zoom-in-dfa">+</button>
+            <button class="btn btn-secondary btn-sm" id="zoom-out-dfa">-</button>
+            <button class="btn btn-secondary btn-sm" id="zoom-reset-dfa">Fit</button>
+          </div>
+        </div>
+
+        <div class="bottom-panel" id="panel-dfa">
+          <div class="bottom-panel-header">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span>DFA Transition Table with NFA State Subsets</span>
+              <button class="btn btn-secondary btn-sm copy-dfa-table-btn">📋 Copy Table</button>
+            </div>
+            <div class="view-mode-bar">
+              <button class="view-btn active" data-target="tab-dfa" data-mode="split">Split</button>
+              <button class="view-btn" data-target="tab-dfa" data-mode="diagram">Diagram Only</button>
+              <button class="view-btn" data-target="tab-dfa" data-mode="table">Table Only</button>
+            </div>
+          </div>
+          <div class="bottom-panel-body" id="dfa-table-container"></div>
+        </div>
+      </section>
+
+      <!-- TAB 3: ε-NFA (Thompson's Construction) View -->
+      <section id="tab-nfa" class="tab-content">
+        <div class="graph-container" id="graph-container-nfa">
+          <div class="graph-info-overlay">
+            <strong>ε-NFA Diagram (Thompson's Construction)</strong>
+            <span id="nfa-status-text">States: 0 | Start: q0 | Accept: { }</span>
+          </div>
+          <div class="graph-controls-overlay">
+            <button class="btn btn-secondary btn-sm" id="zoom-in-nfa">+</button>
+            <button class="btn btn-secondary btn-sm" id="zoom-out-nfa">-</button>
+            <button class="btn btn-secondary btn-sm" id="zoom-reset-nfa">Fit</button>
+          </div>
+        </div>
+
+        <div class="bottom-panel" id="panel-nfa">
+          <div class="bottom-panel-header">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span>ε-NFA Transition Table δ(q, a)</span>
+              <button class="btn btn-secondary btn-sm copy-nfa-table-btn">📋 Copy Table</button>
+            </div>
+            <div class="view-mode-bar">
+              <button class="view-btn active" data-target="tab-nfa" data-mode="split">Split</button>
+              <button class="view-btn" data-target="tab-nfa" data-mode="diagram">Diagram Only</button>
+              <button class="view-btn" data-target="tab-nfa" data-mode="table">Table Only</button>
+            </div>
+          </div>
+          <div class="bottom-panel-body" id="nfa-table-container"></div>
+        </div>
+      </section>
+
+      <!-- TAB 4: All 3 Tables & Comparison -->
+      <section id="tab-compare" class="tab-content">
+        <div class="scrollable-page">
+
+          <!-- Card 1: Minimized DFA Table -->
+          <div class="control-card">
+            <div class="card-title">
+              <span>Stage 3: Minimized DFA Transition Table (Final Minimal Machine)</span>
+              <button class="btn btn-secondary btn-sm copy-min-table-btn">📋 Copy Markdown</button>
+            </div>
+            <p style="font-size: 0.85rem; color: var(--text-muted);">
+              Obtained after partitioning equivalent states with Hopcroft's algorithm. Minimum possible number of states.
+            </p>
+            <div class="table-wrapper" id="compare-min-table-container"></div>
+          </div>
+
+          <!-- Card 2: DFA Table -->
+          <div class="control-card">
+            <div class="card-title">
+              <span>Stage 2: Deterministic Finite Automaton (DFA) Transition Table</span>
+              <button class="btn btn-secondary btn-sm copy-dfa-table-btn">📋 Copy Markdown</button>
+            </div>
+            <p style="font-size: 0.85rem; color: var(--text-muted);">
+              Obtained via Rabin-Scott Subset Construction. Each row maps an equivalent subset of NFA states.
+            </p>
+            <div class="table-wrapper" id="compare-dfa-table-container"></div>
+          </div>
+
+          <!-- Card 3: NFA Table -->
+          <div class="control-card">
+            <div class="card-title">
+              <span>Stage 1: Non-Deterministic Finite Automaton (ε-NFA) Transition Table</span>
+              <button class="btn btn-secondary btn-sm copy-nfa-table-btn">📋 Copy Markdown</button>
+            </div>
+            <p style="font-size: 0.85rem; color: var(--text-muted);">
+              Inductively constructed from the postfix regular expression using Thompson's structural rules.
+            </p>
+            <div class="table-wrapper" id="compare-nfa-table-container"></div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- TAB 5: Step-by-Step Proofs & Conversion Logs -->
+      <section id="tab-steps" class="tab-content">
+        <div class="scrollable-page">
+
+          <!-- Stage 1: Postfix Conversion -->
+          <div class="control-card">
+            <div class="card-title">
+              <span>Stage 0: Preprocessing & Shunting-Yard Infix to Postfix</span>
+            </div>
+            <p style="font-size: 0.85rem; color: var(--text-muted);">
+              Implicit concatenation operators (<code>·</code>) are inserted before converting the regular expression into Reverse Polish Notation (Postfix) to make operator precedence explicit.
+            </p>
+            <div style="font-family: var(--font-mono); background-color: var(--bg-secondary); padding: 12px; border-radius: 4px; font-size: 0.9rem; display: flex; flex-direction: column; gap: 6px;">
+              <div><strong>Raw Input:</strong> <span id="step-raw-regex" style="color: var(--primary-color);"></span></div>
+              <div><strong>Explicit Concat:</strong> <span id="step-concat-regex" style="color: var(--accent-color);"></span></div>
+              <div><strong>Postfix (RPN):</strong> <span id="step-postfix-regex" style="color: var(--warning-color);"></span></div>
+            </div>
+          </div>
+
+          <!-- Stage 2: Subset Construction Table -->
+          <div class="control-card">
+            <div class="card-title">
+              <span>Stage 2: Powerset Construction Detailed Log (ε-Closure & Transitions)</span>
+            </div>
+            <p style="font-size: 0.85rem; color: var(--text-muted);">
+              Shows the step-by-step computation of <code>move(State, symbol)</code> and <code>ε-closure(move)</code> for each unique DFA state subset.
+            </p>
+            <div class="table-wrapper" id="steps-subset-table-container"></div>
+          </div>
+
+          <!-- Stage 3: Hopcroft Partition Refinement Log -->
+          <div class="control-card">
+            <div class="card-title">
+              <span>Stage 3: Hopcroft DFA Minimization Iterations</span>
+            </div>
+            <p style="font-size: 0.85rem; color: var(--text-muted);">
+              Begins with partition <code>P₀ = { Non-Accepting, Accepting }</code> and iteratively refines groups based on transition equivalence until a fixed point is reached.
+            </p>
+            <div id="steps-minimization-container" style="display: flex; flex-direction: column; gap: 8px;"></div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- TAB 6: Batch Tester -->
+      <section id="tab-batch" class="tab-content">
+        <div class="scrollable-page">
+          <div class="control-card">
+            <div class="card-title">
+              <span>Batch String Verification Suite</span>
+            </div>
+            <p style="font-size: 0.85rem; color: var(--text-muted);">
+              Enter multiple strings (one per line or comma-separated) to test language membership simultaneously on the DFA:
+            </p>
+            <textarea id="batch-input-area" rows="6" style="width: 100%; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: var(--radius-sm); color: var(--text-main); font-family: var(--font-mono); padding: 10px;" placeholder="Enter strings:
+abb
+aabb
+ab
+a
+ε"></textarea>
+            <div>
+              <button id="batch-run-btn" class="btn btn-primary btn-sm">Run Batch Tests</button>
+            </div>
+            <div class="table-wrapper" style="margin-top: 10px;">
+              <table class="data-table" id="batch-results-table">
+                <thead>
+                  <tr>
+                    <th>Input String</th>
+                    <th>Length</th>
+                    <th>Result</th>
+                    <th>Final State</th>
+                    <th>Detailed Path</th>
+                  </tr>
+                </thead>
+                <tbody id="batch-results-body">
+                  <tr><td colspan="5" style="text-align: center; color: var(--text-muted);">Click "Run Batch Tests" to verify strings.</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 7: TOC Theory Guide -->
+      <section id="tab-theory" class="tab-content">
+        <div class="scrollable-page">
+          <div class="info-callout">
+            <h4>1. Mathematical Definition of a DFA</h4>
+            <p>
+              A <strong>Deterministic Finite Automaton (DFA)</strong> is formally defined as a 5-tuple:
+              <br><code>M = (Q, Σ, δ, q₀, F)</code>
+            </p>
+            <ul style="margin-left: 20px; margin-top: 8px;">
+              <li><strong>Q:</strong> A finite set of states.</li>
+              <li><strong>Σ:</strong> A finite alphabet of input symbols.</li>
+              <li><strong>δ:</strong> The transition function <code>δ : Q × Σ → Q</code> (deterministic mapping).</li>
+              <li><strong>q₀:</strong> The start state, where <code>q₀ ∈ Q</code>.</li>
+              <li><strong>F:</strong> The set of accepting / final states, where <code>F ⊆ Q</code>.</li>
+            </ul>
+          </div>
+
+          <div class="info-callout">
+            <h4>2. Thompson's Construction Algorithm (Regex → ε-NFA)</h4>
+            <p>
+              Ken Thompson's algorithm constructs an ε-NFA inductively from the syntax of regular expressions:
+            </p>
+            <ul style="margin-left: 20px; margin-top: 8px;">
+              <li><strong>Base Symbol 'a':</strong> Two states connected by edge labeled <code>a</code>.</li>
+              <li><strong>Concatenation (AB):</strong> The accept state of A connects to the start state of B via an <code>ε</code> transition.</li>
+              <li><strong>Alternation (A | B):</strong> New start state forks with <code>ε</code> to A.start and B.start; accepts merge with <code>ε</code> into a new accept.</li>
+              <li><strong>Kleene Star (A*):</strong> Introduces an <code>ε</code>-loop for repetition and an <code>ε</code>-bypass for 0 occurrences.</li>
+            </ul>
+            <p style="margin-top: 8px;"><strong>Time & Space Complexity:</strong> O(n) where n is the length of the regular expression.</p>
+          </div>
+
+          <div class="info-callout">
+            <h4>3. Powerset / Subset Construction (ε-NFA → DFA)</h4>
+            <p>
+              Invented by Michael O. Rabin and Dana Scott (1959 Turing Award):
+            </p>
+            <ul style="margin-left: 20px; margin-top: 8px;">
+              <li>Computes <strong>ε-closure(S)</strong>: the set of states reachable via only ε-transitions from state set S.</li>
+              <li>Each state in the DFA corresponds to a distinct <em>subset</em> of NFA states.</li>
+              <li>Transition on symbol <code>a</code>: <code>DFA_Next = ε-closure(move(DFA_Current, a))</code>.</li>
+              <li>A DFA state is accepting if it contains at least one NFA accepting state.</li>
+            </ul>
+            <p style="margin-top: 8px;"><strong>Complexity:</strong> Up to <code>2^|Q_NFA|</code> worst-case states, but in practice typically linear/polynomial for standard expressions.</p>
+          </div>
+
+          <div class="info-callout">
+            <h4>4. Hopcroft's Algorithm (DFA Minimization)</h4>
+            <p>
+              Finds the unique minimal state DFA accepting the same language (Myhill-Nerode Theorem):
+            </p>
+            <ul style="margin-left: 20px; margin-top: 8px;">
+              <li>Starts by separating states into two equivalence classes: <strong>F</strong> (accepting) and <strong>Q \ F</strong> (non-accepting).</li>
+              <li>Repeatedly partitions equivalence classes whenever two states transition to different classes on any alphabet symbol.</li>
+              <li>Terminates when no further partitions occur, yielding the minimal DFA with the smallest possible number of states.</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- Mobile Modal -->
+  <div id="mobile-modal" class="modal-backdrop" style="display: none;">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>📱 Open on Your Mobile Phone</h3>
+        <button id="close-modal-btn" class="modal-close">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 12px;">
+          Make sure your phone is connected to the same Wi-Fi network as this computer, then open this link or scan the QR code:
+        </p>
+        <div class="input-group" style="margin-bottom: 14px;">
+          <label>Mobile URL:</label>
+          <div style="display: flex; gap: 6px;">
+            <input type="text" id="mobile-url-input" readonly value="" style="font-weight: bold; color: var(--primary-color);">
+            <button id="copy-mobile-url-btn" class="btn btn-primary btn-sm">Copy</button>
+          </div>
+        </div>
+        <div style="text-align: center; padding: 12px; background: white; border-radius: var(--radius-sm); display: inline-block; margin: 0 auto; width: 100%;">
+          <img id="mobile-qr-img" src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=" alt="Scan QR Code to open on Mobile" width="180" height="180" style="display: block; margin: 0 auto;">
+          <div style="font-size: 0.75rem; color: #475569; margin-top: 6px; font-weight: 600;">Scan with phone camera</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>
